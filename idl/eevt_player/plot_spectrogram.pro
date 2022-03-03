@@ -31,9 +31,7 @@ function plot_spectrogram, z, x, y, $
 
   ct = colortable(13, ncolors = ncolors, /transpose)
 
-  c = contour(zz, xx, yy, /fill, /current
-  
-  , $
+  c = contour(zz, xx, yy, /fill, /current, $
     xrange = xrange, yrange = yrange, $
     position = position, $
     c_color = ct, n_levels = ncolors, $
