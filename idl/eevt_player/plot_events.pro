@@ -8,10 +8,11 @@ pro PlotEventHandler__define
 end
 
 pro plot_events, eevt, vals, xsize = xsize, ysize = ysize, $
-  max_windows = max_windows, max_spec_per_step = max_spec_per_step, mon_index = mon_index
+  max_windows = max_windows, max_spec_per_step = max_spec_per_step, $
+  mon_index = mon_index
 
   if eevt eq !null then begin
-    print, "No events to plot'
+    print, 'No events to plot'
     return
   endif
 
@@ -21,7 +22,7 @@ pro plot_events, eevt, vals, xsize = xsize, ysize = ysize, $
   if not keyword_set(max_spec_per_step) then max_spec_per_step = 3
   if not keyword_set(mon_index) then mon_index = 0
 
-  ; Standard plot set-up.
+  ; Standard procedural plot set-up.
   ;  standard_plot
 
   last_ind = 60
@@ -36,7 +37,6 @@ pro plot_events, eevt, vals, xsize = xsize, ysize = ysize, $
   date_format = ['%h:%i','%m-%d-%z']
   xformat = ['label_date', 'label_date']
   xunits = ['Minutes','Days']
-  ;  !null = label_date(date_format = date_format)
 
   windows = make_array(max_windows, /obj)
 
@@ -72,7 +72,7 @@ pro plot_events, eevt, vals, xsize = xsize, ysize = ysize, $
     this_eevt = eevt[event_index, *]
     eevt_len = this_eevt[0].eevt.evt_length
 
-    jday = this_eevt[0:eevt_len-1].hk.jday
+    jday = this_eevt[0:eevt_len - 1].hk.jday
     chan_index = findgen(64)
     num_chans = size(chan_index)
 
@@ -108,6 +108,13 @@ pro plot_events, eevt, vals, xsize = xsize, ysize = ysize, $
     num_steps = eevt_len - spec_per_step
 
     create_new_win = !false
+
+    safe_close, bsp
+    bsp = make_array(num_steps, /obj)
+
+    safe_close, sp
+    sp = make_array(num_steps, /obj)
+
     while spec0_index ge 0 and spec0_index le num_steps do begin
 
       specN_index = spec0_index + spec_per_step - 1
@@ -122,17 +129,18 @@ pro plot_events, eevt, vals, xsize = xsize, ysize = ysize, $
       ; Plot the 'light curve' for this event.
       safe_close, ep
       ep = plot(jday, bp_low, /current, title = 'Event ' + eevt_id, $
-        xrange = xrange, xstyle = 1, $
-        yrange = yrange, ystyle = 1, $
-        xtickformat = xformat, xtickunits = xunits, $
+        xrange = xrange, xstyle = 1, yrange = yrange, ystyle = 1, $
+        xtickformat = xformat, xtickunits = xunits, thick = 2, $
         symbol = diamond, sym_size = 0.5, /sym_filled, $
-        thick = 2, position = pos)
+        position = pos)
 
       ; Highlight the points whose spectra will be shown.
       safe_close, ehp
       ehp = plot(jday[spec0_index:specN_index], bp_low[spec0_index:specN_index], /current, $
         xrange = xrange, xstyle = 1, yrange = yrange, ystyle = 1, $
-        symbol = square, sym_size = 2, color = red, linestyle = 'none', thick = 2, position = pos)
+        symbol = square, sym_size = 2, color = red, $
+        linestyle = 'none', position = pos)
+
       ++row_index
 
       pos = plot_coord(row_index, 0, imax, 1)
@@ -145,6 +153,7 @@ pro plot_events, eevt, vals, xsize = xsize, ysize = ysize, $
         es = plot_spectrogram(bp_low_spec, jday[0:eevt_len - 1], chan_index, $
           xrange = xrange, yrange = yrange, $
           xtickformat = xformat, xtickunits = xtickunits, position = pos)
+
         ++row_index
       endif
 
@@ -163,14 +172,15 @@ pro plot_events, eevt, vals, xsize = xsize, ysize = ysize, $
 
         safe_close, bsp
         bsp = plot(chan_index, this_back_spec, /current, title = 'Spectrum', $
-          xtitle = 'Channel', xrange = xrange, /xsty, $
-          ytitle = 'Counts per Second', /ylog, yrange = yrange, /ysty, $
-          thick = 2, position = pos)
+          xtitle = 'Channel', ytitle = 'Counts per Second', /ylog, thick = 2, $
+          xrange = xrange, xstyle = 1, yrange = yrange, ystyle = 1, $
+          position = pos)
 
         safe_close, sp
-        sp = plot(chan_index, scale_fac * this_evt_spec, /current, $
-          xrange = xrange, /xsty, /ylog, yrange = yrange, /ysty, axis_style = 0, $
-          thick = 2, color = red, position = pos)
+        sp = plot(chan_index, scale_fac * this_evt_spec, /current, thick = 2, color = red, $
+          xrange = xrange, xstyle = 1, yrange = yrange, ystyle = 1, $
+          /ylog, axis_style = 0, $
+          position = pos)
 
         ind_low = 7
         ind_high = 20
@@ -186,23 +196,23 @@ pro plot_events, eevt, vals, xsize = xsize, ysize = ysize, $
         diff_min = min(diff_spec[qtmp])
         diff_max = max(diff_spec[qtmp])
 
-        ;        pos = plot_coord(row_index, panel1, imax, jmax, left = 0.07 - offset)
         pos = plot_coord(row_index, panel1, imax, jmax, left = 0.03 - offset)
 
+        xrange = chan_range
         yrange = [ diff_min, diff_max ]
 
         safe_close, dsp
         dsp = plot(chan_index, diff_spec, /current, title = 'Diff spec', $
-          xtitle = 'Channel', /xsty, xrange = chan_range, $
-          ytitle = 'Counts per Second', /ylog, yrange = yrange, $
+          xtitle = 'Channel', ytitle = 'Counts per Second', /ylog, $
+          xrange = xrange, xstyle = 1, yrange = yrange, ystyle = 1, $
           thick = 5, position = pos)
 
         if n_elements(param) eq 2 then begin
           safe_close, fp
-          fp = plot(chan_index, param[0] * exp(chan_index / param[1]), /current, $
-            /xsty, xrange = chan_range, $
-            /ylog, yrange = yrange, axis_style = 0, $
-            thick = 5, color = red, position = pos)
+          fp = plot(chan_index, param[0] * exp(chan_index / param[1]), /current, thick = 5, color = red, $
+            xrange = xrange, xstyle = 1, yrange = yrange, ystyle = 1, $
+            /ylog, axis_style = 0, $
+            position = pos)
 
           this_eevt[i].eevt.exp_fac = param[1]
         endif
@@ -246,15 +256,14 @@ pro plot_events, eevt, vals, xsize = xsize, ysize = ysize, $
     endif
 
     if create_new_win then begin
-      win_index = ++win_index
-      if (win_index >= max_windows) then begin
-        win_index = 0
-        windows[win_index].Erase
-        windows[win_index].SetCurrent
-      endif else begin
-        title = string(FORMAT = "E.E. Events %d", win_index)
+      win_index = ++win_index mod max_windows
 
+      title = string(format = "E.E. Events %d", win_index)
+
+      if windows[win_index] eq !null then begin
         windows[win_index] = create_win(mon_index, win_index, xsize = xsize, ysize = ysize, title = title)
+      endif else begin
+        windows[win_index].SetCurrent
       endelse
 
     endif

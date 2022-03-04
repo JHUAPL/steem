@@ -7,13 +7,13 @@ pro plot_events_pro, eevt, vals, xsize = xsize, ysize = ysize, $
     return
   endif
 
-  if not keyword_set(xsize) then xsize = 1600
+  if not keyword_set(xsize) then xsize = 1280
   if not keyword_set(ysize) then ysize = 900
   if not keyword_set(max_windows) then max_windows = 1
   if not keyword_set(max_spec_per_step) then max_spec_per_step = 3
   if not keyword_set(mon_index) then mon_index = 0
 
-  ; Standard plot set-up.
+  ; Standard procedural plot set-up.
   standard_plot
 
   last_ind = 60
@@ -28,7 +28,6 @@ pro plot_events_pro, eevt, vals, xsize = xsize, ysize = ysize, $
   date_format = ['%h:%i','%m-%d-%z']
   xformat = ['label_date', 'label_date']
   xunits = ['Minutes','Days']
-  ;  date = label_date(date_format = date_format)
 
   win_index = 0
   dims = eevt.dim
@@ -60,6 +59,7 @@ pro plot_events_pro, eevt, vals, xsize = xsize, ysize = ysize, $
     bp_low_spec = transpose(this_eevt[0:eevt_len - 1].eevt.bp_low_spec);
 
     bp_low = this_eevt[0:eevt_len-1].eevt.bp_low
+    bp_low_range = [ min(bp_low), max(bp_low) ]
 
     jday_range = [ jday[0], jday[eevt_len - 1] ]
     chan_range = [ chan_index[0], chan_index[num_chans[1] - 1] ]
@@ -96,16 +96,20 @@ pro plot_events_pro, eevt, vals, xsize = xsize, ysize = ysize, $
       ; Set jmax = 1 (not jmax) so the plot will fill the window horizontally.
       pos = plot_coord(row_index, 0, imax, 1)
 
-      ; Plot the 'light curve' for this event.
       xrange = jday_range
+      yrange = bp_low_range
+
+      ; Plot the 'light curve' for this event.
       plot, jday, bp_low, title = 'Event ' + eevt_id, $
-        xrange = xrange, xstyle = 1, $
-        ; Do not set yrange for this plot, auto-range seems good.
-        ;        yrange = ..., $
-        xtickformat = xformat, xtickunits = xunits, thick = 2, psym = -diamond, position = pos
+        xrange = xrange, xstyle = 1, yrange = yrange, ystyle = 1, $
+        xtickformat = xformat, xtickunits = xunits, thick = 2, $
+        psym = -diamond, symsize = 1, $
+        position = pos
 
       ; Highlight the points whose spectra will be shown.
-      plots, jday[spec0_index:specN_index], bp_low[spec0_index:specN_index], psym = square, symsize = 4, color = red
+      plots, jday[spec0_index:specN_index], bp_low[spec0_index:specN_index], $
+        psym = square, symsize = 4, color = red
+
       ++row_index
 
       pos = plot_coord(row_index, 0, imax, 1)
@@ -113,9 +117,11 @@ pro plot_events_pro, eevt, vals, xsize = xsize, ysize = ysize, $
       if do_plot_spec then begin
         xrange = jday_range
         yrange = chan_range
+
         !null = plot_spectrogram_pro(bp_low_spec, jday[0:eevt_len - 1], chan_index, $
           xrange = xrange, yrange = yrange, $
           xtickformat = xformat, xtickunits = xtickunits, position = pos)
+
         ++row_index
       endif
 
@@ -130,10 +136,13 @@ pro plot_events_pro, eevt, vals, xsize = xsize, ysize = ysize, $
         pos = plot_coord(row_index, panel0, imax, jmax, right = 0.03 - offset)
 
         xrange = chan_range
+        yrange = [ 0.1, max([this_back_spec, scale_fac * this_evt_spec]) ]
+
         plot, chan_index, this_back_spec, /noerase, title = 'Spectrum', $
-          xtitle = 'Channel', /xsty, xrange = xrange, $
-          ytitle = 'Counts per Second', /ylog, yrange = [ 0.1, max([this_back_spec, scale_fac * this_evt_spec]) ], $
-          thick = 2, position = pos
+          xtitle = 'Channel', ytitle = 'Counts per Second', /ylog, thick = 2, $
+          xrange = xrange, xstyle = 1, yrange = yrange, ystyle = 1, $
+          position = pos
+
         oplot, scale_fac * this_evt_spec, thick = 2, color = red
 
         ind_low = 7
@@ -150,17 +159,18 @@ pro plot_events_pro, eevt, vals, xsize = xsize, ysize = ysize, $
         diff_min = min(diff_spec[qtmp])
         diff_max = max(diff_spec[qtmp])
 
-        ;        pos = plot_coord(row_index, panel1, imax, jmax, left = 0.07 - offset)
         pos = plot_coord(row_index, panel1, imax, jmax, left = 0.03 - offset)
 
+        xrange = chan_range
+        yrange = [ diff_min, diff_max ]
+
         plot, chan_index, diff_spec, /noerase, title = 'Diff spec', $
-          xtitle = 'Channel', /xsty, xrange = chan_range, $
-          ytitle = 'Counts per Second', /ylog, $
-          min = diff_min, max = diff_max, thick = 5, position = pos
+          xtitle = 'Channel', ytitle = 'Counts per Second', /ylog, $
+          xrange = xrange, xstyle = 1, yrange = yrange, ystyle = 1, $
+          thick = 5, position = pos
 
         if n_elements(param) eq 2 then begin
           oplot, chan_index, param[0] * exp(chan_index / param[1]), thick = 5, color = red
-          ;        y,0.3,0.4,param,/do_exp_fcn
           this_eevt[i].eevt.exp_fac = param[1]
         endif
 
@@ -181,6 +191,8 @@ pro plot_events_pro, eevt, vals, xsize = xsize, ysize = ysize, $
           print, format = 'Keeping event %s in window %d', eevt_id, win_index
           create_new_win = !true
         endif else if r eq 's' or r eq 'S' then begin
+          xrange = jday_range
+          yrange = chan_range
           !null = plot_spectrogram(bp_low_spec, jday[0:eevt_len - 1], chan_index, $
             xrange = xrange, yrange = yrange, $
             xtickformat = xformat, xtickunits = xtickunits, $
@@ -210,9 +222,10 @@ pro plot_events_pro, eevt, vals, xsize = xsize, ysize = ysize, $
     if create_new_win then begin
       win_index = ++win_index mod max_windows
 
-      title = string(FORMAT = "E.E. Events %d", win_index)
+      title = string(format = "E.E. Events %d", win_index)
 
-      create_win_pro, mon_index, win_index, xsize = xsize, ysize = ysize, title = title
+      !null = create_win_pro(mon_index, win_index, xsize = xsize, ysize = ysize, title = title)
+
     endif
 
   endwhile
