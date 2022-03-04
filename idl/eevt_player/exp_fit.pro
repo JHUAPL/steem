@@ -7,7 +7,7 @@ function exp_fit,x0,y0,yfit=yfit
 
   qx = where(x gt 0,nqx)
   if nqx le 1 then begin
-    ; message,'There are not enough non-zero X values!',/continue
+    message,'There are not enough non-zero X values!',/continue
     return,-1
   endif
   x = x[qx]
@@ -15,7 +15,7 @@ function exp_fit,x0,y0,yfit=yfit
 
   qy = where(y gt 0,nqy)
   if nqy le 1 then begin
-    ; message,'There are not enough non-zero Y values!',/continue
+    message,'There are not enough non-zero Y values!',/continue
     return,-1
   endif
 
@@ -34,6 +34,4 @@ function exp_fit,x0,y0,yfit=yfit
   yfit = exp(poly(x,param_tmp))
 
   return,param
-
 end
-
