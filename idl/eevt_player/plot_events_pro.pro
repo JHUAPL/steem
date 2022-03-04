@@ -13,6 +13,9 @@ pro plot_events_pro, eevt, vals, xsize = xsize, ysize = ysize, $
   if not keyword_set(max_spec_per_step) then max_spec_per_step = 3
   if not keyword_set(mon_index) then mon_index = 0
 
+  device, decomposed = 0
+  loadct, 13, /silent
+
   ; Standard procedural plot set-up.
   standard_plot
 
@@ -22,7 +25,8 @@ pro plot_events_pro, eevt, vals, xsize = xsize, ysize = ysize, $
 
   diamond = 4
   square = 6
-  red = '0000ff'x
+  fg_color = 105
+  accent_color = 255
 
   ; Time plot formatting
   date_format = ['%h:%i','%m-%d-%z']
@@ -104,11 +108,12 @@ pro plot_events_pro, eevt, vals, xsize = xsize, ysize = ysize, $
         xrange = xrange, xstyle = 1, yrange = yrange, ystyle = 1, $
         xtickformat = xformat, xtickunits = xunits, thick = 2, $
         psym = -diamond, symsize = 1, $
+        color = fg_color, $
         position = pos
 
       ; Highlight the points whose spectra will be shown.
       plots, jday[spec0_index:specN_index], bp_low[spec0_index:specN_index], $
-        psym = square, symsize = 4, color = red
+        psym = square, symsize = 4, color = accent_color
 
       ++row_index
 
@@ -141,9 +146,10 @@ pro plot_events_pro, eevt, vals, xsize = xsize, ysize = ysize, $
         plot, chan_index, this_back_spec, /noerase, title = 'Spectrum', $
           xtitle = 'Channel', ytitle = 'Counts per Second', /ylog, thick = 2, $
           xrange = xrange, xstyle = 1, yrange = yrange, ystyle = 1, $
+          color = fg_color, $
           position = pos
 
-        oplot, scale_fac * this_evt_spec, thick = 2, color = red
+        oplot, scale_fac * this_evt_spec, thick = 2, color = accent_color
 
         ind_low = 7
         ind_high = 20
@@ -167,10 +173,11 @@ pro plot_events_pro, eevt, vals, xsize = xsize, ysize = ysize, $
         plot, chan_index, diff_spec, /noerase, title = 'Diff spec', $
           xtitle = 'Channel', ytitle = 'Counts per Second', /ylog, $
           xrange = xrange, xstyle = 1, yrange = yrange, ystyle = 1, $
+          color = fg_color, $
           thick = 5, position = pos
 
         if n_elements(param) eq 2 then begin
-          oplot, chan_index, param[0] * exp(chan_index / param[1]), thick = 5, color = red
+          oplot, chan_index, param[0] * exp(chan_index / param[1]), thick = 5, color = accent_color
           this_eevt[i].eevt.exp_fac = param[1]
         endif
 
