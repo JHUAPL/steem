@@ -7,31 +7,35 @@ function plot_spectrogram_pro, z, x, y, $
 
   if not keyword_set(ncolors) then ncolors = !d.table_size
 
-  loadct, 13, /silent
-
   xx = x
   yy = y
   zz = z
 
   zsize = size(zz)
+
+  zmax = max(zz)
+  zmin = zmax
   for i = 0, zsize[1] - 1 do begin
-    for j = 0, zsize[2] - 1 do begin
-      if zz[i, j] > 0.0 then zz[i, j] = alog10(zz[i, j]) $
-      else zz[i, j] = !values.d_nan
-    endfor
+    posj = where(zz[i, *] gt 0.0 and $
+      zz[i, *] ne !values.D_INFINITY and zz[i, *] ne !values.F_INFINITY and $
+      zz[i, *] ne !values.D_NAN and zz[i, *] ne !values.F_NAN)
+    min = min(zz[i, posj])
+    zmin = min(min, zmin)
   endfor
 
-  zmin = min(zz)
-  zmax = max(zz)
+  if zmin gt 0.0 and zmax gt zmin then begin
+    exp = alog(zmax / zmin) / (ncolors - 1)
 
-  c_colors = indgen(ncolors)
-  factor = (zmax - zmin) / ncolors
-  levels = c_colors * factor + zmin
+    levels = dindgen(ncolors)
+    for i = 0, ncolors - 1 do begin
+      levels[i] = zmin * exp(i * exp)
+    endfor
+  endif
 
   contour, zz, xx, yy, /noerase, /fill, $
     xrange = xrange, yrange = yrange, xstyle = 1, ystyle = 1, $
     position = position, xtickformat = xtickformat, xtickunits = xtickunits, $
-    c_colors = c_colors, levels = levels
+    levels = levels
 
   return, !null
 end
