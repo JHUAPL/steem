@@ -1,9 +1,14 @@
 function plot_spectrogram_pro, z, x, y, $
-  xrange = xrange, yrange = yrange, $
-  position = position, $
+  xrange = xrange, xstyle = xstyle, $
+  yrange = yrange, ystyle = ystyle, $
+  xtitle = xtitle, ytitle = ytitle, $
   xtickformat = xtickformat, $
   xtickunits = xtickunits, $
-  ncolors = ncolors
+  ytickformat = ytickformat, $
+  ytickunits = ytickunits, $
+  ncolors = ncolors, $
+  log = log, $
+  position = position
 
   if not keyword_set(ncolors) then ncolors = !d.table_size
 
@@ -13,29 +18,12 @@ function plot_spectrogram_pro, z, x, y, $
   yy = y
   zz = z
 
-  zsize = size(zz)
-
-  zmax = max(zz)
-  zmin = zmax
-  for i = 0, zsize[1] - 1 do begin
-    posj = where(zz[i, *] gt 0.0 and $
-      zz[i, *] ne !values.D_INFINITY and zz[i, *] ne !values.F_INFINITY and $
-      zz[i, *] ne !values.D_NAN and zz[i, *] ne !values.F_NAN)
-    min = min(zz[i, posj])
-    zmin = min(min, zmin)
-  endfor
-
-  if zmin gt 0.0 and zmax gt zmin then begin
-    exp = alog(zmax / zmin) / (ncolors - 1)
-
-    levels = dindgen(ncolors)
-    for i = 0, ncolors - 1 do begin
-      levels[i] = zmin * exp(i * exp)
-    endfor
-  endif
+  levels = get_levels(zz, ncolors, log = log)
 
   contour, zz, xx, yy, /noerase, /fill, $
-    xrange = xrange, yrange = yrange, xstyle = 1, ystyle = 1, $
+    xrange = xrange, xstyle = xstyle, $
+    yrange = yrange, ystyle = ystyle, $
+    xtitle = xtitle, ytitle = ytitle, $
     position = position, xtickformat = xtickformat, xtickunits = xtickunits, $
     levels = levels, color = fg_color
 

@@ -97,16 +97,22 @@ pro plot_events_pro, eevt, vals, xsize = xsize, ysize = ysize, $
       erase
 
       ; Set jmax = 1 (not jmax) so the plot will fill the window horizontally.
-      pos = plot_coord(row_index, 0, imax, 1, height = 2)
+      pos = plot_coord(row_index, 0, imax, 1, height = 0.5)
+
+      !null = color_bar_pro(bp_low_spec, xtitle = 'Counts per second', /log, position = pos)
+
+      ++row_index
+
+      ; Set jmax = 1 (not jmax) so the plot will fill the window horizontally.
+      pos = plot_coord(row_index - 0.5, 0, imax, 1, height = 1.5)
 
       xrange = jday_range
       yrange = chan_range
 
       !null = plot_spectrogram_pro(bp_low_spec, jday[0:eevt_len - 1], chan_index, $
-        xrange = xrange, yrange = yrange, $
-        xtickformat = xformat, xtickunits = xtickunits, position = pos)
+        xrange = xrange, xstyle = 1, yrange = yrange, ystyle = 1, $
+        xtickformat = xformat, xtickunits = xtickunits, /log, position = pos)
 
-      ++row_index
       ++row_index
 
       ; Set jmax = 1 (not jmax) so the plot will fill the window horizontally.
@@ -118,7 +124,7 @@ pro plot_events_pro, eevt, vals, xsize = xsize, ysize = ysize, $
       ; Plot the 'light curve' for this event.
       plot, jday, bp_low, /noerase, title = 'Event ' + eevt_id, $
         xrange = xrange, xstyle = 1, yrange = yrange, ystyle = 1, $
-        xtickformat = xformat, xtickunits = xunits, thick = 2, $
+        xtickformat = xformat, xtickunits = xtickunits, thick = 2, $
         psym = -diamond, symsize = 1, $
         color = fg_color, $
         position = pos
@@ -142,8 +148,11 @@ pro plot_events_pro, eevt, vals, xsize = xsize, ysize = ysize, $
         xrange = chan_range
         yrange = [ 0.1, max([this_back_spec, scale_fac * this_evt_spec]) ]
 
-        plot, chan_index, this_back_spec, /noerase, title = 'Spectrum', $
-          xtitle = 'Channel', ytitle = 'Counts per Second', /ylog, thick = 2, $
+        if i eq spec0_index then title = 'Spectrum' else title = ''
+        if i eq specN_index then xtitle = 'Channel' else xtitle = ''
+
+        plot, chan_index, this_back_spec, /noerase, title = title, $
+          xtitle = xtitle, ytitle = 'Counts per second', /ylog, thick = 2, $
           xrange = xrange, xstyle = 1, yrange = yrange, ystyle = 1, $
           color = fg_color, $
           position = pos
@@ -169,8 +178,11 @@ pro plot_events_pro, eevt, vals, xsize = xsize, ysize = ysize, $
         xrange = chan_range
         yrange = [ diff_min, diff_max ]
 
-        plot, chan_index, diff_spec, /noerase, title = 'Diff spec', $
-          xtitle = 'Channel', ytitle = 'Counts per Second', /ylog, $
+        if i eq spec0_index then title = 'Diff spec' else title = ''
+        if i eq specN_index then xtitle = 'Channel' else xtitle = ''
+
+        plot, chan_index, diff_spec, /noerase, title = title, $
+          xtitle = xtitle, ytitle = 'Counts per second', /ylog, $
           xrange = xrange, xstyle = 1, yrange = yrange, ystyle = 1, $
           color = fg_color, $
           thick = 5, position = pos
