@@ -5,5 +5,6 @@ pro show_instructions
   print, 'Press N or p to go back to the previous event'
   print, 'Press k to keep this window and go on to the next event'
   print, 'Press d to display some details about this event'
+  print, 'Press l to toggle linear/log scaling in the color bar'
   print, 'Press q to quit'
 end
