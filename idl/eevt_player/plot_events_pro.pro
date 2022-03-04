@@ -42,9 +42,6 @@ pro plot_events_pro, eevt, vals, xsize = xsize, ysize = ysize, $
 
   show_instructions
 
-  ; Plot constants.
-  do_plot_spec = !true
-
   panel0 = 0
   panel1 = 1
   panel2 = 2
@@ -83,9 +80,7 @@ pro plot_events_pro, eevt, vals, xsize = xsize, ysize = ysize, $
 
     spec_per_step = min([eevt_len, max_spec_per_step])
 
-    if do_plot_spec then imax = spec_per_step + 2 $
-    else imax = spec_per_step + 1
-
+    imax = spec_per_step + 2
     jmax = 2
 
     spec0_index = 0
@@ -97,6 +92,21 @@ pro plot_events_pro, eevt, vals, xsize = xsize, ysize = ysize, $
       specN_index = spec0_index + spec_per_step - 1
 
       row_index = 0
+
+      ; Set jmax = 1 (not jmax) so the plot will fill the window horizontally.
+      pos = plot_coord(row_index, 0, imax, 1)
+
+      xrange = jday_range
+      yrange = chan_range
+
+      erase
+
+      !null = plot_spectrogram_pro(bp_low_spec, jday[0:eevt_len - 1], chan_index, $
+        xrange = xrange, yrange = yrange, $
+        xtickformat = xformat, xtickunits = xtickunits, position = pos)
+
+      ++row_index
+
       ; Set jmax = 1 (not jmax) so the plot will fill the window horizontally.
       pos = plot_coord(row_index, 0, imax, 1)
 
@@ -104,7 +114,7 @@ pro plot_events_pro, eevt, vals, xsize = xsize, ysize = ysize, $
       yrange = bp_low_range
 
       ; Plot the 'light curve' for this event.
-      plot, jday, bp_low, title = 'Event ' + eevt_id, $
+      plot, jday, bp_low, /noerase, title = 'Event ' + eevt_id, $
         xrange = xrange, xstyle = 1, yrange = yrange, ystyle = 1, $
         xtickformat = xformat, xtickunits = xunits, thick = 2, $
         psym = -diamond, symsize = 1, $
@@ -116,19 +126,6 @@ pro plot_events_pro, eevt, vals, xsize = xsize, ysize = ysize, $
         psym = square, symsize = 4, color = accent_color
 
       ++row_index
-
-      pos = plot_coord(row_index, 0, imax, 1)
-
-      if do_plot_spec then begin
-        xrange = jday_range
-        yrange = chan_range
-
-        !null = plot_spectrogram_pro(bp_low_spec, jday[0:eevt_len - 1], chan_index, $
-          xrange = xrange, yrange = yrange, $
-          xtickformat = xformat, xtickunits = xtickunits, position = pos)
-
-        ++row_index
-      endif
 
       this_back_spec = this_eevt[last_ind].eevt.bp_low_spec
 
