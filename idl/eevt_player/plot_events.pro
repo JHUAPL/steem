@@ -22,6 +22,9 @@ pro plot_events, eevt, vals, xsize = xsize, ysize = ysize, $
   if not keyword_set(max_spec_per_step) then max_spec_per_step = 3
   if not keyword_set(mon_index) then mon_index = 0
 
+  device, decomposed = 0
+  loadct, 13, /silent
+
   ; Standard procedural plot set-up.
   ;  standard_plot
 
