@@ -49,6 +49,8 @@ pro plot_events_pro, eevt, vals, xsize = xsize, ysize = ysize, $
   panel2 = 2
   offset = 0.03
 
+  spec_log = !true
+
   event_index = 0
   while event_index ge 0 and event_index lt dims[0] do begin
 
@@ -99,7 +101,7 @@ pro plot_events_pro, eevt, vals, xsize = xsize, ysize = ysize, $
       ; Set jmax = 1 (not jmax) so the plot will fill the window horizontally.
       pos = plot_coord(row_index, 0, imax, 1, height = 0.5)
 
-      !null = color_bar_pro(bp_low_spec, xtitle = 'Counts per second', /log, position = pos)
+      !null = color_bar_pro(bp_low_spec, xtitle = 'Counts per second', log = spec_log, position = pos)
 
       ++row_index
 
@@ -111,7 +113,7 @@ pro plot_events_pro, eevt, vals, xsize = xsize, ysize = ysize, $
 
       !null = plot_spectrogram_pro(bp_low_spec, jday[0:eevt_len - 1], chan_index, $
         xrange = xrange, xstyle = 1, yrange = yrange, ystyle = 1, $
-        xtickformat = xformat, xtickunits = xtickunits, /log, position = pos)
+        xtickformat = xformat, xtickunits = xtickunits, log = spec_log, position = pos)
 
       ++row_index
 
@@ -200,6 +202,7 @@ pro plot_events_pro, eevt, vals, xsize = xsize, ysize = ysize, $
 
         replot = r eq ' ' or r eq 'b' or r eq 'B' or $
           r eq 'n' or r eq 'N' or r eq 'p' or r eq 'P' or $
+          r eq 'l' or r eq 'L' or $
           r eq 'q' or r eq 'Q'
 
         ; Handle things that don't require replotting right here.
@@ -235,6 +238,11 @@ pro plot_events_pro, eevt, vals, xsize = xsize, ysize = ysize, $
       ; If on the last event, don't exit the loop because of hitting n or <space>.
       if event_index lt dims[0] - 1 then ++event_index $
       else print, 'Cannot go past last event. Use q to quit.'
+    endif else if r eq 'l' or r eq 'L' then begin
+      ; Toggle linear/log scaling for the color bar of the spectrogram.
+      spec_log = not spec_log
+      if spec_log then print, 'Displaying spectrogram with logarithmic color bar.' $
+      else print, 'Displaying spectrogram with linear color bar.'
     endif
 
     if create_new_win then begin
