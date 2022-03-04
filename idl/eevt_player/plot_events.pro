@@ -1,13 +1,3 @@
-pro show_instructions
-  print, 'Press <space> to go on to the next group of spectra'
-  print, 'Press b to go back to the previous group of spectra'
-  print, 'Press n to go on to the next event'
-  print, 'Press N or p to go back to the previous event'
-  print, 'Press k to keep this window and go on to the next event'
-  print, 'Press d to display some details about this event'
-  print, 'Press q to quit'
-end
-
 function PlotEventHandler::KeyHandler, Window, IsASCII, Character, KeyValue, X, Y, Press, Release, KeyMode
   if Press then print,'press'
   if Release then print,'release'
@@ -32,7 +22,7 @@ pro plot_events, eevt, vals, xsize = xsize, ysize = ysize, $
   if not keyword_set(mon_index) then mon_index = 0
 
   ; Standard plot set-up.
-  standard_plot
+  ;  standard_plot
 
   last_ind = 60
   back_ind0 = 50
@@ -40,7 +30,7 @@ pro plot_events, eevt, vals, xsize = xsize, ysize = ysize, $
 
   diamond = 4
   square = 6
-  red = '0000ff'x
+  red = [ 255, 0, 0 ]
 
   ; Time plot formatting
   date_format = ['%h:%i','%m-%d-%z']
@@ -68,6 +58,15 @@ pro plot_events, eevt, vals, xsize = xsize, ysize = ysize, $
   offset = 0.03
 
   event_index = 0
+
+  ep = !null
+  ehp = !null
+  es = !null
+  bsp = !null
+  sp = !null
+  dsp = !null
+  fp = !null
+
   while event_index ge 0 and event_index lt dims[0] do begin
 
     this_eevt = eevt[event_index, *]
@@ -80,6 +79,7 @@ pro plot_events, eevt, vals, xsize = xsize, ysize = ysize, $
     bp_low_spec = transpose(this_eevt[0:eevt_len - 1].eevt.bp_low_spec);
 
     bp_low = this_eevt[0:eevt_len-1].eevt.bp_low
+    bp_low_range = [ min(bp_low), max(bp_low) ]
 
     jday_range = [ jday[0], jday[eevt_len - 1] ]
     chan_range = [ chan_index[0], chan_index[num_chans[1] - 1] ]
@@ -116,17 +116,23 @@ pro plot_events, eevt, vals, xsize = xsize, ysize = ysize, $
       ; Set jmax = 1 (not jmax) so the plot will fill the window horizontally.
       pos = plot_coord(row_index, 0, imax, 1)
 
-      ; Plot the 'light curve' for this event.
       xrange = jday_range
+      yrange = bp_low_range
+
+      ; Plot the 'light curve' for this event.
+      safe_close, ep
       ep = plot(jday, bp_low, /current, title = 'Event ' + eevt_id, $
         xrange = xrange, xstyle = 1, $
-        ; Do not set yrange for this plot, auto-range seems good.
-        ;        yrange = ..., $
-        xtickformat = xformat, xtickunits = xunits, thick = 2, position = pos)
+        yrange = yrange, ystyle = 1, $
+        xtickformat = xformat, xtickunits = xunits, $
+        symbol = diamond, sym_size = 0.5, /sym_filled, $
+        thick = 2, position = pos)
 
       ; Highlight the points whose spectra will be shown.
-      ehp = plot(jday[spec0_index:specN_index], bp_low[spec0_index:specN_index], /current, axis_style = 0, $
-        symbol = square, sym_size = 4, color = red, linestyle = 'none', position = pos)
+      safe_close, ehp
+      ehp = plot(jday[spec0_index:specN_index], bp_low[spec0_index:specN_index], /current, $
+        xrange = xrange, xstyle = 1, yrange = yrange, ystyle = 1, $
+        symbol = square, sym_size = 2, color = red, linestyle = 'none', thick = 2, position = pos)
       ++row_index
 
       pos = plot_coord(row_index, 0, imax, 1)
@@ -134,6 +140,8 @@ pro plot_events, eevt, vals, xsize = xsize, ysize = ysize, $
       if do_plot_spec then begin
         xrange = jday_range
         yrange = chan_range
+
+        safe_close, es
         es = plot_spectrogram(bp_low_spec, jday[0:eevt_len - 1], chan_index, $
           xrange = xrange, yrange = yrange, $
           xtickformat = xformat, xtickunits = xtickunits, position = pos)
@@ -152,12 +160,16 @@ pro plot_events, eevt, vals, xsize = xsize, ysize = ysize, $
 
         xrange = chan_range
         yrange = [ 0.1, max([this_back_spec, scale_fac * this_evt_spec]) ]
+
+        safe_close, bsp
         bsp = plot(chan_index, this_back_spec, /current, title = 'Spectrum', $
-          xtitle = 'Channel', /xsty, xrange = xrange, $
-          ytitle = 'Counts per Second', /ylog, yrange = yrange, $
+          xtitle = 'Channel', xrange = xrange, /xsty, $
+          ytitle = 'Counts per Second', /ylog, yrange = yrange, /ysty, $
           thick = 2, position = pos)
+
+        safe_close, sp
         sp = plot(chan_index, scale_fac * this_evt_spec, /current, $
-          xrange = xrange, yrange = yrange, axis_style = 0, $
+          xrange = xrange, /xsty, /ylog, yrange = yrange, /ysty, axis_style = 0, $
           thick = 2, color = red, position = pos)
 
         ind_low = 7
@@ -179,12 +191,14 @@ pro plot_events, eevt, vals, xsize = xsize, ysize = ysize, $
 
         yrange = [ diff_min, diff_max ]
 
+        safe_close, dsp
         dsp = plot(chan_index, diff_spec, /current, title = 'Diff spec', $
           xtitle = 'Channel', /xsty, xrange = chan_range, $
           ytitle = 'Counts per Second', /ylog, yrange = yrange, $
           thick = 5, position = pos)
 
         if n_elements(param) eq 2 then begin
+          safe_close, fp
           fp = plot(chan_index, param[0] * exp(chan_index / param[1]), /current, $
             /xsty, xrange = chan_range, $
             /ylog, yrange = yrange, axis_style = 0, $
