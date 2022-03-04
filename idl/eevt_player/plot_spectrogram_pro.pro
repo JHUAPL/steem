@@ -1,4 +1,4 @@
-pro plot_spectrogram_pro, z, x, y, $
+function plot_spectrogram_pro, z, x, y, $
   xrange = xrange, yrange = yrange, $
   position = position, $
   xtickformat = xtickformat, $
@@ -33,4 +33,5 @@ pro plot_spectrogram_pro, z, x, y, $
     position = position, xtickformat = xtickformat, xtickunits = xtickunits, $
     c_colors = c_colors, levels = levels
 
+  return, !null
 end

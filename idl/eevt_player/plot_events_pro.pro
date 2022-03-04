@@ -35,7 +35,7 @@ pro plot_events_pro, eevt, vals, xsize = xsize, ysize = ysize, $
 
   title = string(FORMAT = "E.E. Events %d", win_index)
 
-  create_win_pro, mon_index, win_index, xsize = xsize, ysize = ysize, title = title
+  !null = create_win_pro(mon_index, win_index, xsize = xsize, ysize = ysize, title = title)
 
   show_instructions
 
@@ -113,9 +113,9 @@ pro plot_events_pro, eevt, vals, xsize = xsize, ysize = ysize, $
       if do_plot_spec then begin
         xrange = jday_range
         yrange = chan_range
-        plot_spectrogram_pro, bp_low_spec, jday[0:eevt_len - 1], chan_index, $
+        !null = plot_spectrogram_pro(bp_low_spec, jday[0:eevt_len - 1], chan_index, $
           xrange = xrange, yrange = yrange, $
-          xtickformat = xformat, xtickunits = xtickunits, position = pos
+          xtickformat = xformat, xtickunits = xtickunits, position = pos)
         ++row_index
       endif
 
@@ -181,7 +181,7 @@ pro plot_events_pro, eevt, vals, xsize = xsize, ysize = ysize, $
           print, format = 'Keeping event %s in window %d', eevt_id, win_index
           create_new_win = !true
         endif else if r eq 's' or r eq 'S' then begin
-          !null = plot_spectrogram(mon_index, win_index, bp_low_spec, jday[0:eevt_len - 1], chan_index, $
+          !null = plot_spectrogram(bp_low_spec, jday[0:eevt_len - 1], chan_index, $
             xrange = xrange, yrange = yrange, $
             xtickformat = xformat, xtickunits = xtickunits, $
             title = 'Event ' + eevt_id)
