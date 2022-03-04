@@ -1,3 +1,9 @@
+; This is an "object-oriented" version of plot_events_pro. It doesn't work completely right.
+; It tries to keep track of the plot objects and remove them from the plot window when
+; overwriting them. However, it doesn't track those quite correctly because of the loops.
+;
+; As of this check-in, this is mostly in sync with the procedural code, plot_events_pro.pro.
+; However, at present the plan is not to use this OO version, so not fixing the problems.
 function PlotEventHandler::KeyHandler, Window, IsASCII, Character, KeyValue, X, Y, Press, Release, KeyMode
   if Press then print,'press'
   if Release then print,'release'
