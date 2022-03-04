@@ -2,6 +2,8 @@ pro plot_events_pro, eevt, vals, xsize = xsize, ysize = ysize, $
   max_windows = max_windows, max_spec_per_step = max_spec_per_step, $
   mon_index = mon_index
 
+  common draw_colors, fg_color, accent_color
+
   if eevt eq !null then begin
     print, 'No events to plot'
     return
@@ -80,7 +82,7 @@ pro plot_events_pro, eevt, vals, xsize = xsize, ysize = ysize, $
 
     spec_per_step = min([eevt_len, max_spec_per_step])
 
-    imax = spec_per_step + 2
+    imax = spec_per_step + 3
     jmax = 2
 
     spec0_index = 0
@@ -92,19 +94,19 @@ pro plot_events_pro, eevt, vals, xsize = xsize, ysize = ysize, $
       specN_index = spec0_index + spec_per_step - 1
 
       row_index = 0
+      erase
 
       ; Set jmax = 1 (not jmax) so the plot will fill the window horizontally.
-      pos = plot_coord(row_index, 0, imax, 1)
+      pos = plot_coord(row_index, 0, imax, 1, height = 2)
 
       xrange = jday_range
       yrange = chan_range
-
-      erase
 
       !null = plot_spectrogram_pro(bp_low_spec, jday[0:eevt_len - 1], chan_index, $
         xrange = xrange, yrange = yrange, $
         xtickformat = xformat, xtickunits = xtickunits, position = pos)
 
+      ++row_index
       ++row_index
 
       ; Set jmax = 1 (not jmax) so the plot will fill the window horizontally.

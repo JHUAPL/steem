@@ -7,6 +7,8 @@ function plot_spectrogram_pro, z, x, y, $
 
   if not keyword_set(ncolors) then ncolors = !d.table_size
 
+  common draw_colors, fg_color, accent_color
+
   xx = x
   yy = y
   zz = z
@@ -35,7 +37,7 @@ function plot_spectrogram_pro, z, x, y, $
   contour, zz, xx, yy, /noerase, /fill, $
     xrange = xrange, yrange = yrange, xstyle = 1, ystyle = 1, $
     position = position, xtickformat = xtickformat, xtickunits = xtickunits, $
-    levels = levels
+    levels = levels, color = fg_color
 
   return, !null
 end
