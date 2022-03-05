@@ -6,7 +6,7 @@ function color_bar_pro, array, $
 
   if not keyword_set(ncolors) then ncolors = !d.table_size
 
-  levels = get_levels(array, ncolors)
+  levels = get_levels(array, ncolors, log = log)
 
   xrange = [ levels[0], levels[levels.LENGTH - 1] ]
   yrange = [ 0, 1 ]
