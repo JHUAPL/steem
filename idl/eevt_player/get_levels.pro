@@ -1,16 +1,44 @@
 function get_levels, array, ncolors, log = log
   if not keyword_set(log) then log = !false
 
-  if log then begin
-    amax = max(array[where(finite(array) and array gt 0.0)], /nan, min = amin)
-  endif else begin
-    amax = max(array[where(finite(array))], /nan, min = amin)
-  endelse
+  asize = size(array)
+
+  amax = -1.0d308
+  amin = +1.0d308
+
+  if asize[0] eq 1 then begin
+    this_array = array
+
+    if log then begin
+      tmpmax = max(this_array[where(finite(this_array) and this_array gt 0.0)], /nan, min = tmpmin)
+    endif else begin
+      tmpmax = max(this_array[where(finite(this_array))], /nan, min = tmpmin)
+    endelse
+
+    amax = max([ amax, tmpmax ])
+    amin = min([ amin, tmpmin ])
+
+  endif else if asize[0] eq 2 then begin
+
+    for i = 0, asize[1] - 1 do begin
+      this_array = array[i, *]
+
+      if log then begin
+        tmpmax = max(this_array[where(finite(this_array) and this_array gt 0.0)], /nan, min = tmpmin)
+      endif else begin
+        tmpmax = max(this_array[where(finite(this_array))], /nan, min = tmpmin)
+      endelse
+
+      amax = max([ amax, tmpmax ])
+      amin = min([ amin, tmpmin ])
+
+    endfor
+
+  endif
 
   if amin eq amax then begin
     levels = [ amin ]
   endif else begin
-
     if log then begin
       exp = alog(amax / amin) / (ncolors - 1)
 
