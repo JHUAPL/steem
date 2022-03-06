@@ -1,6 +1,6 @@
 ; Convert from i, j running from top left to bottom right, i = row, j = column,
 ;  to logical plot coordinates with x, y going from lower left to upper right, x horizontal, y vertical.
-function plot_coord, i, j, imax, jmax, left = left, right = right, top = top, bottom = bottm, $
+function plot_coord, i, j, imax, jmax, left = left, right = right, top = top, bottom = bottom, $
   width = width, height = height
 
   deltax = 1.0 / jmax
