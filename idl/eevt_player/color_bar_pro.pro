@@ -1,18 +1,27 @@
-function color_bar_pro, array, $
+function color_bar_pro, data, $
   xtitle = xtitle, $
   nlevels = nlevels, $
-  log = log, $
+  zrange = zrange, $
+  zlog = zlog, $
   position = position
 
   if not keyword_set(nlevels) then nlevels = !d.table_size
 
-  levels = get_levels(array, nlevels, log = log)
+  array = data
+
+  offset = shift_range_positive(array)
+
+  if keyword_set(zrange) then begin
+    if offset ne !null then shifted_range = zrange + offset else shifted_range = zrange
+  endif
+
+  levels = get_levels(array, nlevels, range = shifted_range, log = zlog)
 
   xrange = [ levels[0], levels[levels.LENGTH - 1] ]
   yrange = [ 0, 1 ]
 
   z = [ [ levels ], [ levels ] ]
-  x = levels
+  if offset ne !null then x = levels - offset else x = levels
   y = yrange
 
   exact = 1
@@ -20,8 +29,9 @@ function color_bar_pro, array, $
 
   return, plot_spectrogram_pro(z, x, y, $
     xrange = xrange, xstyle = exact, yrange = yrange, ystyle = no_axis, $
-    xtitle = xtitle, $
+    zrange = shifted_range, $
+    zlog = zlog, $
     nlevels = nlevels, $
-    log = log, $
+    xtitle = xtitle, $
     position = position)
 end

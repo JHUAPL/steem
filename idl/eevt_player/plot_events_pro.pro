@@ -1,4 +1,5 @@
-pro plot_events_pro, eevt, vals, xsize = xsize, ysize = ysize, $
+pro plot_events_pro, eevt, vals, zrange = zrange, $
+  xsize = xsize, ysize = ysize, $
   max_windows = max_windows, max_spec_per_step = max_spec_per_step, $
   mon_index = mon_index
 
@@ -34,7 +35,6 @@ pro plot_events_pro, eevt, vals, xsize = xsize, ysize = ysize, $
   date_format = ['%h:%i','%m-%d-%z']
   xformat = ['label_date', 'label_date']
   xunits = ['Minutes','Days']
-
   win_index = 0
   dims = eevt.dim
 
@@ -47,7 +47,7 @@ pro plot_events_pro, eevt, vals, xsize = xsize, ysize = ysize, $
   panel0 = 0
   panel1 = 1
   panel2 = 2
-  offset = 0.03
+  margin_offset = 0.03
 
   spec_log = !true
 
@@ -84,7 +84,10 @@ pro plot_events_pro, eevt, vals, xsize = xsize, ysize = ysize, $
 
     spec_per_step = min([eevt_len, max_spec_per_step])
 
-    imax = spec_per_step + 3
+    lines_for_spec = 2
+    lines_for_lc = 1
+
+    imax = spec_per_step + lines_for_spec + lines_for_lc
     jmax = 2
 
     spec0_index = 0
@@ -99,21 +102,24 @@ pro plot_events_pro, eevt, vals, xsize = xsize, ysize = ysize, $
       erase
 
       ; Set jmax = 1 (not jmax) so the plot will fill the window horizontally.
-      pos = plot_coord(row_index, 0, imax, 1, height = 0.5)
+      cb_height = 0.45
 
-      !null = color_bar_pro(bp_low_spec, xtitle = 'Counts per second', log = spec_log, position = pos)
+      pos = plot_coord(row_index, 0, imax, 1, height = cb_height)
+
+      !null = color_bar_pro(bp_low_spec, zrange = zrange, zlog = spec_log, xtitle = 'Counts per second', position = pos)
 
       ++row_index
 
       ; Set jmax = 1 (not jmax) so the plot will fill the window horizontally.
-      pos = plot_coord(row_index - 0.5, 0, imax, 1, height = 1.5)
+      pos = plot_coord(row_index - cb_height, 0, imax, 1, height = 2.0 - cb_height, bottom = 0.06)
 
       xrange = jday_range
       yrange = chan_range
 
       !null = plot_spectrogram_pro(bp_low_spec, jday[0:eevt_len - 1], chan_index, $
         xrange = xrange, xstyle = 1, yrange = yrange, ystyle = 1, $
-        xtickformat = xformat, xtickunits = xtickunits, log = spec_log, position = pos)
+        zrange = zrange, zlog = spec_log, $
+        xtickformat = xformat, xtickunits = xtickunits, position = pos)
 
       ++row_index
 
@@ -145,7 +151,7 @@ pro plot_events_pro, eevt, vals, xsize = xsize, ysize = ysize, $
         scale_fac = total(this_back_spec[back_ind0:back_ind1])/total(this_evt_spec[back_ind0:back_ind1])
         diff_spec = scale_fac*this_evt_spec - this_back_spec
 
-        pos = plot_coord(row_index, panel0, imax, jmax, right = 0.03 - offset)
+        pos = plot_coord(row_index, panel0, imax, jmax, right = 0.03 - margin_offset)
 
         xrange = chan_range
         yrange = [ 0.1, max([this_back_spec, scale_fac * this_evt_spec]) ]
@@ -164,9 +170,14 @@ pro plot_events_pro, eevt, vals, xsize = xsize, ysize = ysize, $
         ind_low = 7
         ind_high = 20
 
+        pos_diff_spec = diff_spec
+
         min_value = min(diff_spec[ind_low:ind_high])
         max_value = max(diff_spec[ind_low:ind_high])
-        if min_value ge 0 then min_value = -max_value / 10000.0
+
+        ; Not sure about this: is it really needed, does it really help the fits?
+        ; Uncomment the next line in order to shift the spectrum prior to fit.
+        ;        if min_value ge 0 then pos_diff_spec = diff_spec else $
         pos_diff_spec = diff_spec - min_value
 
         param = exp_fit(chan_index[ind_low:ind_high],pos_diff_spec[ind_low:ind_high],yfit=yfit)
@@ -175,7 +186,7 @@ pro plot_events_pro, eevt, vals, xsize = xsize, ysize = ysize, $
         diff_min = min(diff_spec[qtmp])
         diff_max = max(diff_spec[qtmp])
 
-        pos = plot_coord(row_index, panel1, imax, jmax, left = 0.03 - offset)
+        pos = plot_coord(row_index, panel1, imax, jmax, left = 0.03 - margin_offset)
 
         xrange = chan_range
         yrange = [ diff_min, diff_max ]

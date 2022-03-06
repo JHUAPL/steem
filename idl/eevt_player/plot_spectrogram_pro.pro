@@ -1,13 +1,14 @@
 function plot_spectrogram_pro, z, x, y, $
   xrange = xrange, xstyle = xstyle, $
   yrange = yrange, ystyle = ystyle, $
+  nlevels = nlevels, $
+  zrange = zrange, $
+  zlog = zlog, $
   xtitle = xtitle, ytitle = ytitle, $
   xtickformat = xtickformat, $
   xtickunits = xtickunits, $
   ytickformat = ytickformat, $
   ytickunits = ytickunits, $
-  nlevels = nlevels, $
-  log = log, $
   position = position
 
   if not keyword_set(nlevels) then nlevels = !d.table_size
@@ -18,7 +19,13 @@ function plot_spectrogram_pro, z, x, y, $
   yy = y
   zz = z
 
-  levels = get_levels(zz, nlevels, log = log)
+  offset = shift_range_positive(zz)
+
+  if keyword_set(zrange) then begin
+    if offset ne !null then shifted_range = zrange + offset else shifted_range = zrange
+  endif
+
+  levels = get_levels(zz, nlevels, range = shifted_range, log = zlog)
 
   contour, zz, xx, yy, /noerase, /fill, $
     xrange = xrange, xstyle = xstyle, $
