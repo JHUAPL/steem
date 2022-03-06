@@ -170,17 +170,16 @@ pro plot_events_pro, eevt, vals, zrange = zrange, $
         ind_low = 7
         ind_high = 20
 
-        pos_diff_spec = diff_spec
+        diff_spec_for_fit = diff_spec
+        make_positive_for_fit = !true
+        if make_positive_for_fit then begin
+          ; Not sure about this: is it really needed, does it really help the fits?
+          max_value = max(diff_spec[ind_low:ind_high], /nan, min=min_value)
+          if min_value lt 0 then diff_spec_for_fit -= min_value
+        endif
 
-        min_value = min(diff_spec[ind_low:ind_high])
-        max_value = max(diff_spec[ind_low:ind_high])
-
-        ; Not sure about this: is it really needed, does it really help the fits?
-        ; Uncomment the next line in order to shift the spectrum prior to fit.
-        ;        if min_value ge 0 then pos_diff_spec = diff_spec else $
-        pos_diff_spec = diff_spec - min_value
-
-        param = exp_fit(chan_index[ind_low:ind_high],pos_diff_spec[ind_low:ind_high],yfit=yfit)
+        param = exp_fit(chan_index[ind_low:ind_high], $
+          diff_spec_for_fit[ind_low:ind_high], yfit=yfit)
 
         qtmp = where(diff_spec gt 0,nqtmp)
         diff_min = min(diff_spec[qtmp])
