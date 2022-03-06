@@ -1,4 +1,4 @@
-function get_levels, array, ncolors, log = log
+function get_levels, array, nlevels, log = log
   if not keyword_set(log) then log = !false
 
   asize = size(array)
@@ -40,18 +40,18 @@ function get_levels, array, ncolors, log = log
     levels = [ amin ]
   endif else begin
     if log then begin
-      exp = alog(amax / amin) / (ncolors - 1)
+      exp = alog(amax / amin) / (nlevels - 1)
 
-      levels = dindgen(ncolors)
-      for i = 0, ncolors - 1 do begin
+      levels = dindgen(nlevels)
+      for i = 0, nlevels - 1 do begin
         levels[i] = amin * exp(i * exp)
       endfor
 
     endif else begin
-      slope = (amax - amin) / (ncolors - 1)
+      slope = (amax - amin) / (nlevels - 1)
 
-      levels = dindgen(ncolors)
-      for i = 0, ncolors - 1 do begin
+      levels = dindgen(nlevels)
+      for i = 0, nlevels - 1 do begin
         levels[i] = amin + slope * i
       endfor
 
