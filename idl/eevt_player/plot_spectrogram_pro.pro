@@ -6,11 +6,11 @@ function plot_spectrogram_pro, z, x, y, $
   xtickunits = xtickunits, $
   ytickformat = ytickformat, $
   ytickunits = ytickunits, $
-  ncolors = ncolors, $
+  nlevels = nlevels, $
   log = log, $
   position = position
 
-  if not keyword_set(ncolors) then ncolors = !d.table_size
+  if not keyword_set(nlevels) then nlevels = !d.table_size
 
   common draw_colors, fg_color, accent_color
 
@@ -18,7 +18,7 @@ function plot_spectrogram_pro, z, x, y, $
   yy = y
   zz = z
 
-  levels = get_levels(zz, ncolors, log = log)
+  levels = get_levels(zz, nlevels, log = log)
 
   contour, zz, xx, yy, /noerase, /fill, $
     xrange = xrange, xstyle = xstyle, $
