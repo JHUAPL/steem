@@ -1,4 +1,6 @@
-; Shift a spectrum to have a minimum value of 1.0 regardless of its actual minimum.
+; Shift a spectrogram (not a spectrum) to have a minimum value of 1.0
+; regardless of its actual minimum. This is useful for setting up the
+; color bar and contour plots, not for any quantitative analysis.
 function shift_range_positive, array, range = range
   offset = !null
 
