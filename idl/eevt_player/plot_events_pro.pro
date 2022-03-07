@@ -16,8 +16,10 @@ pro plot_events_pro, eevt, vals, zrange = zrange, $
   if not keyword_set(max_spec_per_step) then max_spec_per_step = 3
   if not keyword_set(mon_index) then mon_index = 0
 
+  ; Do this or else the color bars are messed up.
   device, decomposed = 0
-  loadct, 13, /silent
+  ;  loadct, 13; Rainbow
+  loadct, 32 ; Plasma -- nice def of spectra
 
   ; Standard procedural plot set-up.
   standard_plot
