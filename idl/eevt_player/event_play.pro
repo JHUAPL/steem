@@ -20,9 +20,9 @@ zmax = max(eevt.eevt.bp_low_spec, /nan, min = zmin)
 ;plot_events_pro, eevt, vals, zrange = zrange, max_spec_per_step = 3, max_windows = 32, mon_index = 0, ysize = 1028 * 7 / 8
 
 ; Home monitor.
-plot_events_pro, eevt, vals, zrange = zrange, max_spec_per_step = 3, max_windows = 32, mon_index = 1, ysize = 1418 * 7 / 8
+;plot_events_pro, eevt, vals, zrange = zrange, max_spec_per_step = 3, max_windows = 32, mon_index = 1, ysize = 1418 * 7 / 8
 
 ; APL monitor.
-;plot_events_pro, eevt, vals, zrange = zrange, max_spec_per_step = 4, max_windows = 32, mon_index = 1, ysize = 2138 * 7 / 8
+plot_events_pro, eevt, vals, zrange = zrange, max_spec_per_step = 1, max_windows = 32, mon_index = 1, ysize = 2138 * 8 / 9
 
 end
