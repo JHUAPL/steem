@@ -22,19 +22,29 @@ pro plot_events_pro, eevt, vals, zrange = zrange, $
   ; Standard procedural plot set-up.
   standard_plot
 
+  ; Time step index where background spectrum is found in each event.
   last_ind = 60
+
+  ; Channel indices that determine the range for spectra to
+  ; agree with the background spectrum. This is used to scale the spectra.
   back_ind0 = 50
   back_ind1 = 60
+
+  ; Channel indices that determine the range for fitting.
+  ind_low = 7
+  ind_high = 20
 
   diamond = 4
   square = 6
   fg_color = 105
   accent_color = 255
 
-  ; Time plot formatting
+  ; Time plot formatting.
   date_format = ['%h:%i','%m-%d-%z']
+  ; Initialize date labels.
+  !null = label_date(date_format = date_format)
   xformat = ['label_date', 'label_date']
-  xunits = ['Minutes','Days']
+  xtickunits = ['Minutes','Days']
   win_index = 0
   dims = eevt.dim
 
@@ -62,6 +72,16 @@ pro plot_events_pro, eevt, vals, zrange = zrange, $
     num_chans = size(chan_index)
 
     bp_low_spec = transpose(this_eevt[0:eevt_len - 1].eevt.bp_low_spec);
+    this_back_spec = this_eevt[last_ind].eevt.bp_low_spec
+
+    scale_factor = make_array(eevt_len, /float)
+    spec = make_array(eevt_len, num_chans[1], /float)
+    diff_spec = make_array(eevt_len, num_chans[1], /float)
+
+    for i = 0, eevt_len - 1 do begin
+      scale_factor[i] = total(this_back_spec[back_ind0:back_ind1])/total(bp_low_spec[i, back_ind0:back_ind1])
+      diff_spec[i, *] = scale_factor[i] * bp_low_spec[i, *] - this_back_spec
+    endfor
 
     bp_low = this_eevt[0:eevt_len-1].eevt.bp_low
     bp_low_range = [ min(bp_low), max(bp_low) ]
@@ -101,9 +121,9 @@ pro plot_events_pro, eevt, vals, zrange = zrange, $
       row_index = 0
       erase
 
-      ; Set jmax = 1 (not jmax) so the plot will fill the window horizontally.
-      cb_height = 0.45
+      cb_height = 0.5
 
+      ; Set jmax = 1 (not jmax) so the plot will fill the window horizontally.
       pos = plot_coord(row_index, 0, imax, 1, height = cb_height)
 
       !null = color_bar_pro(bp_low_spec, zrange = zrange, zlog = spec_log, xtitle = 'Counts per second', position = pos)
@@ -143,13 +163,10 @@ pro plot_events_pro, eevt, vals, zrange = zrange, $
 
       ++row_index
 
-      this_back_spec = this_eevt[last_ind].eevt.bp_low_spec
-
       for i = spec0_index, specN_index do begin
 
         this_evt_spec = this_eevt[i].eevt.bp_low_spec
-        scale_fac = total(this_back_spec[back_ind0:back_ind1])/total(this_evt_spec[back_ind0:back_ind1])
-        diff_spec = scale_fac*this_evt_spec - this_back_spec
+        scale_fac = scale_factor[i]
 
         pos = plot_coord(row_index, panel0, imax, jmax, right = 0.03 - margin_offset)
 
@@ -167,23 +184,21 @@ pro plot_events_pro, eevt, vals, zrange = zrange, $
 
         oplot, scale_fac * this_evt_spec, thick = 2, color = accent_color
 
-        ind_low = 7
-        ind_high = 20
-
-        diff_spec_for_fit = diff_spec
+        this_diff_spec = diff_spec[i, *]
+        diff_spec_for_fit = this_diff_spec
         make_positive_for_fit = !true
         if make_positive_for_fit then begin
           ; Not sure about this: is it really needed, does it really help the fits?
-          max_value = max(diff_spec[ind_low:ind_high], /nan, min=min_value)
+          max_value = max(this_diff_spec[ind_low:ind_high], /nan, min=min_value)
           if min_value lt 0 then diff_spec_for_fit -= min_value
         endif
 
         param = exp_fit(chan_index[ind_low:ind_high], $
           diff_spec_for_fit[ind_low:ind_high], yfit=yfit)
 
-        qtmp = where(diff_spec gt 0,nqtmp)
-        diff_min = min(diff_spec[qtmp])
-        diff_max = max(diff_spec[qtmp])
+        qtmp = where(this_diff_spec gt 0,nqtmp)
+        diff_min = min(this_diff_spec[qtmp])
+        diff_max = max(this_diff_spec[qtmp])
 
         pos = plot_coord(row_index, panel1, imax, jmax, left = 0.03 - margin_offset)
 
@@ -193,7 +208,7 @@ pro plot_events_pro, eevt, vals, zrange = zrange, $
         if i eq spec0_index then title = 'Diff spec' else title = ''
         if i eq specN_index then xtitle = 'Channel' else xtitle = ''
 
-        plot, chan_index, diff_spec, /noerase, title = title, $
+        plot, chan_index, this_diff_spec, /noerase, title = title, $
           xtitle = xtitle, ytitle = 'Counts per second', /ylog, $
           xrange = xrange, xstyle = 1, yrange = yrange, ystyle = 1, $
           color = fg_color, $
