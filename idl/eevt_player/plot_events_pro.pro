@@ -41,12 +41,22 @@ pro plot_events_pro, eevt, vals, zrange = zrange, $
   fg_color = 105
   accent_color = 255
 
+  ; Labels axis with day, time on two lines.
+  ;  ; Time plot formatting.
+  ;  date_format = ['%h:%i','%m-%d-%z']
+  ;  ; Initialize date labels.
+  ;  !null = label_date(date_format = date_format)
+  ;  xformat = ['label_date', 'label_date']
+  ;  xtickunits = ['Minutes','Days']
+
+  ; Single line labels.
   ; Time plot formatting.
-  date_format = ['%h:%i','%m-%d-%z']
+  date_format = [ '%h:%i' ]
   ; Initialize date labels.
   !null = label_date(date_format = date_format)
-  xformat = ['label_date', 'label_date']
-  xtickunits = ['Minutes','Days']
+  xformat = [ 'label_date' ]
+  xtickunits = [ 'Minutes' ]
+
   win_index = 0
   dims = eevt.dim
 
@@ -107,9 +117,10 @@ pro plot_events_pro, eevt, vals, zrange = zrange, $
     spec_per_step = min([eevt_len, max_spec_per_step])
 
     lines_for_spec = 2
+    lines_for_diff_spec = 2
     lines_for_lc = 1
 
-    imax = spec_per_step + lines_for_spec + lines_for_lc
+    imax = spec_per_step + lines_for_spec + lines_for_diff_spec + lines_for_lc
     jmax = 2
 
     spec0_index = 0
@@ -126,22 +137,52 @@ pro plot_events_pro, eevt, vals, zrange = zrange, $
       cb_height = 0.5
 
       ; Set jmax = 1 (not jmax) so the plot will fill the window horizontally.
-      pos = plot_coord(row_index, 0, imax, 1, height = cb_height)
+      pos = plot_coord(row_index, 0, imax, 1, height = cb_height, top = 0.0)
 
-      !null = color_bar_pro(bp_low_spec, zrange = zrange, zlog = spec_log, xtitle = 'Counts per second', position = pos)
+      spec_to_plot = bp_low_spec
+      ;      spec_to_plot = diff_spec
+
+      !null = color_bar_pro(spec_to_plot, zrange = zrange, zlog = spec_log, xtitle = 'Counts per second', position = pos)
 
       ++row_index
 
       ; Set jmax = 1 (not jmax) so the plot will fill the window horizontally.
-      pos = plot_coord(row_index - cb_height, 0, imax, 1, height = 2.0 - cb_height, bottom = 0.06)
+      pos = plot_coord(row_index - cb_height, 0, imax, 1, height = 2.0 - cb_height, top = 0.0, bottom = 0.06)
 
       xrange = jday_range
       yrange = chan_range
 
-      !null = plot_spectrogram_pro(bp_low_spec, jday[0:eevt_len - 1], chan_index, $
+      !null = plot_spectrogram_pro(spec_to_plot, jday[0:eevt_len - 1], chan_index, $
         xrange = xrange, xstyle = 1, yrange = yrange, ystyle = 1, $
         zrange = zrange, zlog = spec_log, $
-        xtickformat = xformat, xtickunits = xtickunits, position = pos)
+        xtickformat = xformat, xtickunits = xtickunits, xticks = 5, $
+        xtitle = 'Spectrogram', $
+        position = pos)
+
+      ++row_index
+
+      ; Set jmax = 1 (not jmax) so the plot will fill the window horizontally.
+      pos = plot_coord(row_index, 0, imax, 1, height = cb_height, top = 0.0)
+
+      ;      spec_to_plot = bp_low_spec
+      spec_to_plot = diff_spec
+
+      !null = color_bar_pro(spec_to_plot, zrange = zrange, zlog = spec_log, xtitle = 'Counts per second', position = pos)
+
+      ++row_index
+
+      ; Set jmax = 1 (not jmax) so the plot will fill the window horizontally.
+      pos = plot_coord(row_index - cb_height, 0, imax, 1, height = 2.0 - cb_height, top = 0.0, bottom = 0.06)
+
+      xrange = jday_range
+      yrange = chan_range
+
+      !null = plot_spectrogram_pro(spec_to_plot, jday[0:eevt_len - 1], chan_index, $
+        xrange = xrange, xstyle = 1, yrange = yrange, ystyle = 1, $
+        zrange = zrange, zlog = spec_log, $
+        xtickformat = xformat, xtickunits = xtickunits, xticks = 5, $
+        xtitle = 'Differential Spectrogram', $
+        position = pos)
 
       ++row_index
 
@@ -154,7 +195,7 @@ pro plot_events_pro, eevt, vals, zrange = zrange, $
       ; Plot the 'light curve' for this event.
       plot, jday, bp_low, /noerase, title = 'Event ' + eevt_id, $
         xrange = xrange, xstyle = 1, yrange = yrange, ystyle = 1, $
-        xtickformat = xformat, xtickunits = xtickunits, thick = 2, $
+        xtickformat = xformat, xtickunits = xtickunits, xticks = 5, thick = 2, $
         psym = -diamond, symsize = 1, $
         color = fg_color, $
         position = pos
