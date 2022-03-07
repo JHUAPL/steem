@@ -1,6 +1,8 @@
 function plot_spectrogram_pro, z, x, y, $
   xrange = xrange, xstyle = xstyle, $
   yrange = yrange, ystyle = ystyle, $
+  xticks = xticks, xminor = xminor, $
+  yticks = yticks, yminor = yminor, $
   nlevels = nlevels, $
   zrange = zrange, $
   zlog = zlog, $
@@ -30,6 +32,8 @@ function plot_spectrogram_pro, z, x, y, $
   contour, zz, xx, yy, /noerase, /fill, $
     xrange = xrange, xstyle = xstyle, $
     yrange = yrange, ystyle = ystyle, $
+    xticks = xticks, xminor = xminor, $
+    yticks = yticks, yminor = yminor, $
     xtitle = xtitle, ytitle = ytitle, $
     position = position, xtickformat = xtickformat, xtickunits = xtickunits, $
     levels = levels, color = fg_color

@@ -25,10 +25,13 @@ function color_bar_pro, data, $
   y = yrange
 
   exact = 1
+  extend = 2
   no_axis = 4
 
   return, plot_spectrogram_pro(z, x, y, $
-    xrange = xrange, xstyle = exact, yrange = yrange, ystyle = no_axis, $
+    xrange = xrange, xstyle = extend, yrange = yrange, ystyle = no_axis, $
+    xticks = 5, $
+    yticks = 1, yminor = 1, $
     zrange = shifted_range, $
     zlog = zlog, $
     nlevels = nlevels, $
