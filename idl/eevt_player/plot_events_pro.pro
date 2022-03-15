@@ -18,8 +18,9 @@ pro plot_events_pro, eevt, vals, zrange = zrange, $
 
   ; Do this or else the color bars are messed up.
   device, decomposed = 0
-  ;  loadct, 13; Rainbow
-  loadct, 32 ; Plasma -- nice def of spectra
+  loadct, 13; Rainbow
+  ;  loadct, 32 ; Plasma -- nice contrasts but can't gauge intensity.
+  ;  loadct, 74 ; Spectral -- darker = more, not really good and background is red.
 
   ; Standard procedural plot set-up.
   standard_plot
