@@ -143,7 +143,7 @@ pro plot_events_pro, eevt, vals, zrange = zrange, $
       spec_to_plot = bp_low_spec
       ;      spec_to_plot = diff_spec
 
-      !null = color_bar_pro(spec_to_plot, zrange = zrange, zlog = spec_log, xtitle = 'Counts per second', position = pos)
+      !null = color_bar_pro(spec_to_plot, zrange = zrange, zlog = spec_log, xtitle = 'Spectrogram (c/s)', position = pos)
 
       ++row_index
 
@@ -157,7 +157,7 @@ pro plot_events_pro, eevt, vals, zrange = zrange, $
         xrange = xrange, xstyle = 1, yrange = yrange, ystyle = 1, $
         zrange = zrange, zlog = spec_log, $
         xtickformat = xformat, xtickunits = xtickunits, xticks = 5, $
-        xtitle = 'Spectrogram', $
+        xtitle = '', $
         position = pos)
 
       ++row_index
@@ -168,7 +168,7 @@ pro plot_events_pro, eevt, vals, zrange = zrange, $
       ;      spec_to_plot = bp_low_spec
       spec_to_plot = diff_spec
 
-      !null = color_bar_pro(spec_to_plot, zrange = zrange, zlog = spec_log, xtitle = 'Counts per second', position = pos)
+      !null = color_bar_pro(spec_to_plot, zrange = zrange, zlog = spec_log, xtitle = 'Differential spectrogram (c/s)', position = pos)
 
       ++row_index
 
@@ -182,7 +182,7 @@ pro plot_events_pro, eevt, vals, zrange = zrange, $
         xrange = xrange, xstyle = 1, yrange = yrange, ystyle = 1, $
         zrange = zrange, zlog = spec_log, $
         xtickformat = xformat, xtickunits = xtickunits, xticks = 5, $
-        xtitle = 'Differential Spectrogram', $
+        xtitle = '', $
         position = pos)
 
       ++row_index
