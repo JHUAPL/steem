@@ -276,7 +276,7 @@ pro plot_events_pro, eevt, vals, zrange = zrange, $
 
         ; Handle things that don't require replotting right here.
         if r eq 'd' or r eq 'D' then begin
-          print, format = '%s (%s)', eevt_id, smoothness
+          print, format = 'Selected event %d: %s (%s)', event_index, eevt_id, smoothness
         endif else if r eq 'k' or r eq 'K' then begin
           print, format = 'Keeping event %s in window %d', eevt_id, win_index
           create_new_win = !true
@@ -293,7 +293,12 @@ pro plot_events_pro, eevt, vals, zrange = zrange, $
 
       if r eq 'b' or r eq 'B' then --spec0_index $
       else if r eq ' ' then ++spec0_index $
-      else break
+      else if r eq 'l' or r eq 'L' then begin
+        ; Toggle linear/log scaling for the color bar of the spectrogram.
+        spec_log = not spec_log
+        if spec_log then print, 'Displaying spectrogram with logarithmic color bar.' $
+        else print, 'Displaying spectrogram with linear color bar.'
+      endif else break
 
     endwhile
 
@@ -307,11 +312,6 @@ pro plot_events_pro, eevt, vals, zrange = zrange, $
       ; If on the last event, don't exit the loop because of hitting n or <space>.
       if event_index lt dims[0] - 1 then ++event_index $
       else print, 'Cannot go past last event. Use q to quit.'
-    endif else if r eq 'l' or r eq 'L' then begin
-      ; Toggle linear/log scaling for the color bar of the spectrogram.
-      spec_log = not spec_log
-      if spec_log then print, 'Displaying spectrogram with logarithmic color bar.' $
-      else print, 'Displaying spectrogram with linear color bar.'
     endif
 
     if create_new_win then begin
