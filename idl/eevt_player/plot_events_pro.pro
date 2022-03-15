@@ -240,9 +240,15 @@ pro plot_events_pro, eevt, vals, zrange = zrange, $
         param = exp_fit(chan_index[ind_low:ind_high], $
           diff_spec_for_fit[ind_low:ind_high], yfit=yfit)
 
-        qtmp = where(this_diff_spec gt 0,nqtmp)
-        diff_min = min(this_diff_spec[qtmp])
-        diff_max = max(this_diff_spec[qtmp])
+
+        if spec_log then begin
+          qtmp = where(this_diff_spec gt 0, nqtmp)
+          diff_min = min(this_diff_spec[qtmp])
+          diff_max = max(this_diff_spec[qtmp])
+        endif      else begin
+          diff_min = min(this_diff_spec)
+          diff_max = max(this_diff_spec)
+        endelse
 
         pos = plot_coord(row_index, panel1, imax, jmax, left = 0.03 - margin_offset)
 
@@ -252,11 +258,19 @@ pro plot_events_pro, eevt, vals, zrange = zrange, $
         if i eq spec0_index then title = 'Diff spec' else title = ''
         if i eq specN_index then xtitle = 'Channel' else xtitle = ''
 
-        plot, chan_index, this_diff_spec, /noerase, title = title, $
-          xtitle = xtitle, ytitle = 'Counts per second', /ylog, $
-          xrange = xrange, xstyle = 1, yrange = yrange, ystyle = 1, $
-          color = fg_color, $
-          thick = 5, position = pos
+        if spec_log then begin
+          plot, chan_index, this_diff_spec, /noerase, title = title, $
+            xtitle = xtitle, ytitle = 'Counts per second', /ylog, $
+            xrange = xrange, xstyle = 1, yrange = yrange, ystyle = 1, $
+            color = fg_color, $
+            thick = 5, position = pos
+        endif else begin
+          plot, chan_index, this_diff_spec, /noerase, title = title, $
+            xtitle = xtitle, ytitle = 'Counts per second', $
+            xrange = xrange, xstyle = 1, yrange = yrange, ystyle = 1, $
+            color = fg_color, $
+            thick = 5, position = pos
+        endelse
 
         if n_elements(param) eq 2 then begin
           oplot, chan_index, param[0] * exp(chan_index / param[1]), thick = 5, color = accent_color
