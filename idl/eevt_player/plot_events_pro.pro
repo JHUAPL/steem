@@ -16,6 +16,10 @@ pro plot_events_pro, eevt, vals, zrange = zrange, $
   if not keyword_set(max_spec_per_step) then max_spec_per_step = 3
   if not keyword_set(mon_index) then mon_index = 0
 
+  xunit = 9.0 / xsize
+  yunit = 8.0 / ysize
+  margins = [ 8.0 * xunit, 8.0 * xunit, 2.0 * yunit, 8.0 * yunit ]
+
   ; Do this or else the color bars are messed up.
   device, decomposed = 0
   loadct, 13; Rainbow
@@ -41,6 +45,9 @@ pro plot_events_pro, eevt, vals, zrange = zrange, $
   square = 6
   fg_color = 105
   accent_color = 255
+
+  zero = 1.d-308
+  neg_zero = -zero
 
   ; Labels axis with day, time on two lines.
   ;  ; Time plot formatting.
@@ -70,7 +77,6 @@ pro plot_events_pro, eevt, vals, zrange = zrange, $
   panel0 = 0
   panel1 = 1
   panel2 = 2
-  margin_offset = 0.03
 
   spec_log = !true
 
@@ -138,17 +144,16 @@ pro plot_events_pro, eevt, vals, zrange = zrange, $
       cb_height = 0.5
 
       ; Set jmax = 1 (not jmax) so the plot will fill the window horizontally.
-      pos = plot_coord(row_index, 0, imax, 1, height = cb_height, top = 0.0)
+      pos = plot_coord(row_index - cb_height, 0, imax, 1, height = cb_height, margins = margins)
 
       spec_to_plot = bp_low_spec
-      ;      spec_to_plot = diff_spec
 
       !null = color_bar_pro(spec_to_plot, zrange = zrange, zlog = spec_log, xtitle = 'Spectrogram (c/s)', position = pos)
 
       ++row_index
 
       ; Set jmax = 1 (not jmax) so the plot will fill the window horizontally.
-      pos = plot_coord(row_index - cb_height, 0, imax, 1, height = 2.0 - cb_height, top = 0.0, bottom = 0.06)
+      pos = plot_coord(row_index, 0, imax, 1, height = 2.0 - cb_height, margins = margins)
 
       xrange = jday_range
       yrange = chan_range
@@ -163,7 +168,7 @@ pro plot_events_pro, eevt, vals, zrange = zrange, $
       ++row_index
 
       ; Set jmax = 1 (not jmax) so the plot will fill the window horizontally.
-      pos = plot_coord(row_index, 0, imax, 1, height = cb_height, top = 0.0)
+      pos = plot_coord(row_index - cb_height, 0, imax, 1, height = cb_height, margins = margins)
 
       ;      spec_to_plot = bp_low_spec
       spec_to_plot = diff_spec
@@ -173,7 +178,7 @@ pro plot_events_pro, eevt, vals, zrange = zrange, $
       ++row_index
 
       ; Set jmax = 1 (not jmax) so the plot will fill the window horizontally.
-      pos = plot_coord(row_index - cb_height, 0, imax, 1, height = 2.0 - cb_height, top = 0.0, bottom = 0.06)
+      pos = plot_coord(row_index, 0, imax, 1, height = 2.0 - cb_height, margins = margins)
 
       xrange = jday_range
       yrange = chan_range
@@ -188,7 +193,7 @@ pro plot_events_pro, eevt, vals, zrange = zrange, $
       ++row_index
 
       ; Set jmax = 1 (not jmax) so the plot will fill the window horizontally.
-      pos = plot_coord(row_index, 0, imax, 1)
+      pos = plot_coord(row_index, 0, imax, 1, margins = margins)
 
       xrange = jday_range
       yrange = bp_low_range
@@ -212,7 +217,9 @@ pro plot_events_pro, eevt, vals, zrange = zrange, $
         this_evt_spec = this_eevt[i].eevt.bp_low_spec
         scale_fac = scale_factor[i]
 
-        pos = plot_coord(row_index, panel0, imax, jmax, right = 0.03 - margin_offset)
+        ; Whatever else you may like about IDL, the fact that 0 cannot be distinguished
+        ; from "unset" in the function is an unpardonable mistake.
+        pos = plot_coord(row_index, panel0, imax, jmax, right = 4.0 * xunit, margins = margins)
 
         xrange = chan_range
         yrange = [ 0.1, max([this_back_spec, scale_fac * this_evt_spec]) ]
@@ -250,7 +257,9 @@ pro plot_events_pro, eevt, vals, zrange = zrange, $
           diff_max = max(this_diff_spec)
         endelse
 
-        pos = plot_coord(row_index, panel1, imax, jmax, left = 0.03 - margin_offset)
+        ; Whatever else you may like about IDL, the fact that 0 cannot be distinguished
+        ; from "unset" in the function is an unpardonable mistake.
+        pos = plot_coord(row_index, panel1, imax, jmax, left = 4.0 * xunit, margins = margins)
 
         xrange = chan_range
         yrange = [ diff_min, diff_max ]
