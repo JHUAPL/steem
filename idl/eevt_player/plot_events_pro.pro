@@ -1,4 +1,4 @@
-pro plot_events_pro, eevt, vals, zrange = zrange, $
+pro plot_events_pro, top_dir, eevt, vals, zrange = zrange, $
   xsize = xsize, ysize = ysize, $
   max_windows = max_windows, max_spec_per_step = max_spec_per_step, $
   mon_index = mon_index
@@ -22,9 +22,11 @@ pro plot_events_pro, eevt, vals, zrange = zrange, $
 
   ; Do this or else the color bars are messed up.
   device, decomposed = 0
+
   loadct, 13; Rainbow
   ;  loadct, 32 ; Plasma -- nice contrasts but can't gauge intensity.
   ;  loadct, 74 ; Spectral -- darker = more, not really good and background is red.
+  ;  set_up_color_table, top_dir + 'messenger/color_tables/flir_ct.idl'
 
   ; Standard procedural plot set-up.
   standard_plot
