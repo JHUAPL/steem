@@ -47,6 +47,10 @@ pro plot_events_pro, top_dir, eevt, vals, zrange = zrange, $
   square = 6
   fg_color = 105
   accent_color = 255
+  accent_color2 = 154
+
+  exact = 1
+  suppress = 4
 
   zero = 1.d-308
   neg_zero = -zero
@@ -106,6 +110,9 @@ pro plot_events_pro, top_dir, eevt, vals, zrange = zrange, $
     jday_range = [ jday[0], jday[eevt_len - 1] ]
     chan_range = [ chan_index[0], chan_index[num_chans[1] - 1] ]
 
+    alt = this_eevt[0:eevt_len - 1].eph.alt
+    alt_range = [ min(alt), max(alt) ]
+
     eevt_id = format_jday(jday[0])
 
     ; Smoothness selection: smooth or bursty
@@ -128,21 +135,20 @@ pro plot_events_pro, top_dir, eevt, vals, zrange = zrange, $
     imax = spec_per_step + lines_for_spec + lines_for_diff_spec + lines_for_lc
     jmax = 2
 
-    panel0 = 0
-    panel1 = 1
-
     spec0_index = 0
     num_steps = eevt_len - spec_per_step
 
     create_new_win = !false
     while spec0_index ge 0 and spec0_index le num_steps do begin
 
-      specN_index = spec0_index + spec_per_step - 1
-
-      row_index = 0
       erase
 
+      specN_index = spec0_index + spec_per_step - 1
+      row_index = 0
       cb_height = 0.5
+
+      panel0 = 0
+      panel1 = 1
 
       ; Set jmax = 1 (not jmax) so the plot will fill the window horizontally.
       pos = plot_coord(row_index - cb_height, panel0, imax, 1, height = cb_height, margins = margins)
@@ -160,7 +166,7 @@ pro plot_events_pro, top_dir, eevt, vals, zrange = zrange, $
       yrange = chan_range
 
       !null = plot_spectrogram_pro(spec_to_plot, jday[0:eevt_len - 1], chan_index, $
-        xrange = xrange, xstyle = 1, yrange = yrange, ystyle = 1, $
+        xrange = xrange, xstyle = exact, yrange = yrange, ystyle = exact, $
         zrange = zrange, zlog = spec_log, $
         xtickformat = xformat, xtickunits = xtickunits, xticks = 5, $
         xtitle = '', $
@@ -185,7 +191,7 @@ pro plot_events_pro, top_dir, eevt, vals, zrange = zrange, $
       yrange = chan_range
 
       !null = plot_spectrogram_pro(spec_to_plot, jday[0:eevt_len - 1], chan_index, $
-        xrange = xrange, xstyle = 1, yrange = yrange, ystyle = 1, $
+        xrange = xrange, xstyle = exact, yrange = yrange, ystyle = exact, $
         zrange = zrange, zlog = spec_log, $
         xtickformat = xformat, xtickunits = xtickunits, xticks = 5, $
         xtitle = '', $
@@ -196,16 +202,29 @@ pro plot_events_pro, top_dir, eevt, vals, zrange = zrange, $
       ; Set jmax = 1 (not jmax) so the plot will fill the window horizontally.
       pos = plot_coord(row_index, panel0, imax, 1, margins = margins)
 
+      ; Plot the altitude with axis on the right overtop the light curve.
+      yrange = alt_range
+      plot, jday, alt, /noerase, title = '', $
+        xrange = xrange, xstyle = exact, yrange = yrange, ystyle = suppress, $
+        xtickformat = xformat, xtickunits = xtickunits, xticks = 5, thick = 2, $
+        psym = -diamond, symsize = 1, $
+        color = accent_color2, $
+        position = pos
+
+      axis, yaxis = 1, ytitle = 'Altitude', color = accent_color2
+
       xrange = jday_range
       yrange = bp_low_range
 
       ; Plot the 'light curve' for this event.
       plot, jday, bp_low, /noerase, title = 'Event ' + eevt_id, $
-        xrange = xrange, xstyle = 1, yrange = yrange, ystyle = 1, $
+        xrange = xrange, xstyle = exact, yrange = yrange, ystyle = suppress, $
         xtickformat = xformat, xtickunits = xtickunits, xticks = 5, thick = 2, $
         psym = -diamond, symsize = 1, $
         color = fg_color, $
         position = pos
+
+      axis, yaxis = 0, ytitle = 'BP low', color = fg_color
 
       ; Highlight the points whose spectra will be shown.
       plots, jday[spec0_index:specN_index], bp_low[spec0_index:specN_index], $
@@ -230,7 +249,7 @@ pro plot_events_pro, top_dir, eevt, vals, zrange = zrange, $
 
         plot, chan_index, this_back_spec, /noerase, title = title, $
           xtitle = xtitle, ytitle = 'Counts per second', /ylog, thick = 2, $
-          xrange = xrange, xstyle = 1, yrange = yrange, ystyle = 1, $
+          xrange = xrange, xstyle = exact, yrange = yrange, ystyle = exact, $
           color = fg_color, $
           position = pos
 
@@ -240,14 +259,13 @@ pro plot_events_pro, top_dir, eevt, vals, zrange = zrange, $
         diff_spec_for_fit = this_diff_spec
         make_positive_for_fit = !true
         if make_positive_for_fit then begin
-          ; Not sure about this: is it really needed, does it really help the fits?
+          ; Not sure about this: is it really needed, does it really helpthe fits?
           max_value = max(this_diff_spec[ind_low:ind_high], /nan, min=min_value)
           if min_value lt 0 then diff_spec_for_fit -= min_value
         endif
 
         param = exp_fit(chan_index[ind_low:ind_high], $
           diff_spec_for_fit[ind_low:ind_high], yfit=yfit)
-
 
         if spec_log then begin
           qtmp = where(this_diff_spec gt 0, nqtmp)
@@ -271,13 +289,13 @@ pro plot_events_pro, top_dir, eevt, vals, zrange = zrange, $
         if spec_log then begin
           plot, chan_index, this_diff_spec, /noerase, title = title, $
             xtitle = xtitle, ytitle = 'Counts per second', /ylog, $
-            xrange = xrange, xstyle = 1, yrange = yrange, ystyle = 1, $
+            xrange = xrange, xstyle = exact, yrange = yrange, ystyle = exact, $
             color = fg_color, $
             thick = 5, position = pos
         endif else begin
           plot, chan_index, this_diff_spec, /noerase, title = title, $
             xtitle = xtitle, ytitle = 'Counts per second', $
-            xrange = xrange, xstyle = 1, yrange = yrange, ystyle = 1, $
+            xrange = xrange, xstyle = exact, yrange = yrange, ystyle = exact, $
             color = fg_color, $
             thick = 5, position = pos
         endelse
