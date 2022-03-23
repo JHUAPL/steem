@@ -13,7 +13,7 @@ pro PlotEventHandler__define
   void = { PlotEventHandler, inherits GraphicsEventAdapter }
 end
 
-pro plot_events, eevt, vals, xsize = xsize, ysize = ysize, $
+pro interactive_plot_events, eevt, vals, xsize = xsize, ysize = ysize, $
   max_windows = max_windows, max_spec_per_step = max_spec_per_step, $
   mon_index = mon_index
 
