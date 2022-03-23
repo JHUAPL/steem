@@ -52,6 +52,7 @@ pro plot_events_pro, top_dir, eevt, vals, zrange = zrange, $
   exact = 1
   suppress = 4
 
+  ; Pass this instead of 0 to functions/procedures. In IDL, 0 is indistinguishable from "unset".
   zero = 1.d-308
   neg_zero = -zero
 
@@ -237,8 +238,6 @@ pro plot_events_pro, top_dir, eevt, vals, zrange = zrange, $
         this_evt_spec = this_eevt[i].eevt.bp_low_spec
         scale_fac = scale_factor[i]
 
-        ; Whatever else you may like about IDL, the fact that 0 cannot be distinguished
-        ; from "unset" in the function is an unpardonable mistake.
         pos = plot_coord(row_index, panel0, imax, jmax, right = 4.0 * xunit, margins = margins)
 
         xrange = chan_range
@@ -276,8 +275,6 @@ pro plot_events_pro, top_dir, eevt, vals, zrange = zrange, $
           diff_max = max(this_diff_spec)
         endelse
 
-        ; Whatever else you may like about IDL, the fact that 0 cannot be distinguished
-        ; from "unset" in the function is an unpardonable mistake.
         pos = plot_coord(row_index, panel1, imax, jmax, left = 4.0 * xunit, margins = margins)
 
         xrange = chan_range
