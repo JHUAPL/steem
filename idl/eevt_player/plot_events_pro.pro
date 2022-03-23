@@ -23,7 +23,7 @@ pro plot_events_pro, top_dir, eevt, vals, zrange = zrange, $
   ; Do this or else the color bars are messed up.
   device, decomposed = 0
 
-  loadct, 13; Rainbow
+  loadct, 13 ; Rainbow
   ;  loadct, 32 ; Plasma -- nice contrasts but can't gauge intensity.
   ;  loadct, 74 ; Spectral -- darker = more, not really good and background is red.
   ;  set_up_color_table, top_dir + 'messenger/color_tables/flir_ct.idl'
@@ -259,9 +259,9 @@ pro plot_events_pro, top_dir, eevt, vals, zrange = zrange, $
         diff_spec_for_fit = this_diff_spec
         make_positive_for_fit = !true
         if make_positive_for_fit then begin
-          ; Not sure about this: is it really needed, does it really helpthe fits?
+          ; Not sure about this: is it really needed, does it really help the fits?
           max_value = max(this_diff_spec[ind_low:ind_high], /nan, min=min_value)
-          if min_value lt 0 then diff_spec_for_fit -= min_value
+          if min_value lt 0 then diff_spec_for_fit -= min_value - 1
         endif
 
         param = exp_fit(chan_index[ind_low:ind_high], $
