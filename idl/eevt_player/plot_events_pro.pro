@@ -283,7 +283,7 @@ pro plot_events_pro, top_dir, eevt, vals, zrange = zrange, $
         xrange = chan_range
         yrange = [ diff_min, diff_max ]
 
-        if i eq spec0_index then title = 'Diff spec' else title = ''
+        if i eq spec0_index then title = 'Diff spec, alt = ' + string(format = '%0.2d', alt[i]) else title = 'alt = ' + string(format = '%0.2d', alt[i])
         if i eq specN_index then xtitle = 'Channel' else xtitle = ''
 
         if spec_log then begin
