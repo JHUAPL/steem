@@ -76,10 +76,6 @@ pro plot_events_pro, top_dir, eevt, vals, zrange = zrange, $
 
   show_instructions
 
-  panel0 = 0
-  panel1 = 1
-  panel2 = 2
-
   spec_log = !true
 
   event_index = 0
@@ -132,6 +128,9 @@ pro plot_events_pro, top_dir, eevt, vals, zrange = zrange, $
     imax = spec_per_step + lines_for_spec + lines_for_diff_spec + lines_for_lc
     jmax = 2
 
+    panel0 = 0
+    panel1 = 1
+
     spec0_index = 0
     num_steps = eevt_len - spec_per_step
 
@@ -146,7 +145,7 @@ pro plot_events_pro, top_dir, eevt, vals, zrange = zrange, $
       cb_height = 0.5
 
       ; Set jmax = 1 (not jmax) so the plot will fill the window horizontally.
-      pos = plot_coord(row_index - cb_height, 0, imax, 1, height = cb_height, margins = margins)
+      pos = plot_coord(row_index - cb_height, panel0, imax, 1, height = cb_height, margins = margins)
 
       spec_to_plot = bp_low_spec
 
@@ -155,7 +154,7 @@ pro plot_events_pro, top_dir, eevt, vals, zrange = zrange, $
       ++row_index
 
       ; Set jmax = 1 (not jmax) so the plot will fill the window horizontally.
-      pos = plot_coord(row_index, 0, imax, 1, height = 2.0 - cb_height, margins = margins)
+      pos = plot_coord(row_index, panel0, imax, 1, height = 2.0 - cb_height, margins = margins)
 
       xrange = jday_range
       yrange = chan_range
@@ -170,7 +169,7 @@ pro plot_events_pro, top_dir, eevt, vals, zrange = zrange, $
       ++row_index
 
       ; Set jmax = 1 (not jmax) so the plot will fill the window horizontally.
-      pos = plot_coord(row_index - cb_height, 0, imax, 1, height = cb_height, margins = margins)
+      pos = plot_coord(row_index - cb_height, panel0, imax, 1, height = cb_height, margins = margins)
 
       ;      spec_to_plot = bp_low_spec
       spec_to_plot = diff_spec
@@ -180,7 +179,7 @@ pro plot_events_pro, top_dir, eevt, vals, zrange = zrange, $
       ++row_index
 
       ; Set jmax = 1 (not jmax) so the plot will fill the window horizontally.
-      pos = plot_coord(row_index, 0, imax, 1, height = 2.0 - cb_height, margins = margins)
+      pos = plot_coord(row_index, panel0, imax, 1, height = 2.0 - cb_height, margins = margins)
 
       xrange = jday_range
       yrange = chan_range
@@ -195,7 +194,7 @@ pro plot_events_pro, top_dir, eevt, vals, zrange = zrange, $
       ++row_index
 
       ; Set jmax = 1 (not jmax) so the plot will fill the window horizontally.
-      pos = plot_coord(row_index, 0, imax, 1, margins = margins)
+      pos = plot_coord(row_index, panel0, imax, 1, margins = margins)
 
       xrange = jday_range
       yrange = bp_low_range
