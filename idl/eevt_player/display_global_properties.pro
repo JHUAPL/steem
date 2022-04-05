@@ -99,6 +99,5 @@ pro display_global_properties, top_dir, eevt, vals, eevt_ids, $
     ; maybe so one can step through events and have each event highlighted on all
     ; 3 plots?
   endelse
-  endelse
 
 end
