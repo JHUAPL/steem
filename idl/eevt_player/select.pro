@@ -19,7 +19,7 @@ function to_string, data
   return, s
 end
 
-pro select, eevt, vals, date = date, $
+pro select, eevt, vals, eevt_ids, date = date, $
   smoothness = smoothness, i_norm = i_norm, sigma_fr = sigma_fr, $
   sn_max_ll = sn_max_ll, $
   evt_length_ll = evt_length_ll, evt_length_ul = evt_length_ul, $
@@ -31,6 +31,7 @@ pro select, eevt, vals, date = date, $
   print, 'Select procedure called with ', num_events, ' events'
   if eevt eq !null then return
   if vals eq !null then return
+  if eevt_ids eq !null then return
 
   ; Date selection.
   if keyword_set(date) then begin
@@ -45,6 +46,7 @@ pro select, eevt, vals, date = date, $
 
       eevt = eevt[indices, *]
       vals = vals[indices, *]
+      eevt_ids = eevt_ids[indices]
     endif else begin
       print, 'TODO: implement selection of a range of dates.'
     endelse
@@ -68,12 +70,14 @@ pro select, eevt, vals, date = date, $
 
       eevt = eevt[indices, *]
       vals = vals[indices, *]
+      eevt_ids = eevt_ids[indices]
     endif else if smoothness eq 'bursty' then begin
       print, format = 'Keeping %s events only: i_norm <= %0.3f or sigma_fr >= %0.3f', smoothness, i_norm, sigma_fr
       indices = where(i_norm_array le i_norm or sigma_array ge sigma_fr, /null)
 
       eevt = eevt[indices, *]
       vals = vals[indices, *]
+      eevt_ids = eevt_ids[indices]
     endif else begin
       print, format = 'Ignoring selection parameter smoothness = ''%s'', must be either ''smooth'' or ''bursty''', smoothness
     endelse
@@ -92,6 +96,7 @@ pro select, eevt, vals, date = date, $
 
     eevt = eevt[indices, *]
     vals = vals[indices, *]
+    eevt_ids = eevt_ids[indices]
 
     num_events = size(eevt)
     num_events = num_events[1]
@@ -113,6 +118,7 @@ pro select, eevt, vals, date = date, $
 
         eevt = eevt[indices, *]
         vals = vals[indices, *]
+        eevt_ids = eevt_ids[indices]
 
         num_events = size(eevt)
         num_events = num_events[1]
@@ -140,6 +146,7 @@ pro select, eevt, vals, date = date, $
 
         eevt = eevt[indices, *]
         vals = vals[indices, *]
+        eevt_ids = eevt_ids[indices]
 
         num_events = size(eevt)
         num_events = num_events[1]
@@ -160,6 +167,7 @@ pro select, eevt, vals, date = date, $
   ;
   ;    eevt = eevt[indices, *]
   ;    vals = vals[indices, *]
+  ;    eevt_ids = eevt_ids[indices]
   ;
   ;    num_events = size(eevt)
   ;    num_events = num_events[1]
@@ -173,6 +181,7 @@ pro select, eevt, vals, date = date, $
   ;
   ;    eevt = eevt[indices, *]
   ;    vals = vals[indices, *]
+  ;    eevt_ids = eevt_ids[indices]
   ;
   ;    num_events = size(eevt)
   ;    num_events = num_events[1]
