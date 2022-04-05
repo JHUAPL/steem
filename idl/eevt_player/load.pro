@@ -1,4 +1,4 @@
-pro load, dir, eevt_out, vals_out
+pro load, dir, eevt_out, vals_out, eevt_ids = eevt_ids
 
   ; Detailed data "eevt".
   fname = 'ele_evt_12hr_orbit_2011-2012.idl'
@@ -29,4 +29,10 @@ pro load, dir, eevt_out, vals_out
   vals_all = [ vals_all, summary_to_array(vals) ]
 
   vals_out = vals_all
+
+  num_events = size(eevt_out)
+  num_events = num_events[1]
+
+  eevt_ids = indgen(num_events) + 1
+
 end
