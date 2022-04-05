@@ -18,7 +18,6 @@ pro display_global_properties, top_dir, eevt, vals, eevt_ids, $
   if not keyword_set(mon_index) then mon_index = 0
   if not keyword_set(row_index) then row_index = 0
   if not keyword_set(num_rows) then num_rows = 1
-  if not keyword_set(display_scatter) then display_scatter = !true
 
   xunit = 9.0 / xsize
   yunit = 8.0 / ysize
@@ -45,6 +44,8 @@ pro display_global_properties, top_dir, eevt, vals, eevt_ids, $
   evt_x = extract_array0(eevt, vals, x_quant)
   evt_y = extract_array0(eevt, vals, y_quant)
 
+  use_spectrogram = !true
+
   if display_scatter then begin
 
     margins = [ 15.0 * xunit, 8.0 * xunit, 2.0 * yunit, 20.0 * yunit ]
@@ -64,9 +65,8 @@ pro display_global_properties, top_dir, eevt, vals, eevt_ids, $
 
     endelse
 
-
-  endif else begin
-
+  endif else if use_spectrogram then begin
+    ; This doesn't quite work. The contour plot just looks wrong because
     margins = [ 8.0 * xunit, 8.0 * xunit, 2.0 * yunit, 8.0 * yunit ]
 
     win_index = 0
@@ -93,6 +93,12 @@ pro display_global_properties, top_dir, eevt, vals, eevt_ids, $
       position = pos)
 
     ;  ++row_index
+
+  endif else begin
+    ; TODO code this to use regular old plot procedure and oplot to highlight points
+    ; maybe so one can step through events and have each event highlighted on all
+    ; 3 plots?
+  endelse
   endelse
 
 end
