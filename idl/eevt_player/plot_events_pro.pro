@@ -1,4 +1,4 @@
-pro plot_events_pro, top_dir, eevt, vals, zrange = zrange, $
+pro plot_events_pro, top_dir, eevt, vals, eevt_ids, zrange = zrange, $
   xsize = xsize, ysize = ysize, $
   max_windows = max_windows, max_spec_per_step = max_spec_per_step, $
   mon_index = mon_index
@@ -114,7 +114,8 @@ pro plot_events_pro, top_dir, eevt, vals, zrange = zrange, $
     alt = this_eevt[0:eevt_len - 1].eph.alt
     alt_range = [ min(alt), max(alt) ]
 
-    eevt_id = format_jday(jday[0])
+    eevt_id = String(format = '%d', eevt_ids[event_index])
+    eevt_date = format_jday(jday[0])
 
     ; Smoothness selection: smooth or bursty
     iNormThreshold = 0.38
@@ -266,6 +267,10 @@ pro plot_events_pro, top_dir, eevt, vals, zrange = zrange, $
         param = exp_fit(chan_index[ind_low:ind_high], $
           diff_spec_for_fit[ind_low:ind_high], yfit=yfit)
 
+        param_valid = n_elements(param) eq 2
+
+        if param_valid then param_label = String(format = ' SI = %0.2f', param[1]) else param_label = ''
+
         if spec_log then begin
           qtmp = where(this_diff_spec gt 0, nqtmp)
           diff_min = min(this_diff_spec[qtmp])
@@ -280,7 +285,9 @@ pro plot_events_pro, top_dir, eevt, vals, zrange = zrange, $
         xrange = chan_range
         yrange = [ diff_min, diff_max ]
 
-        if i eq spec0_index then title = 'Diff spec, alt = ' + string(format = '%0.2d', alt[i]) else title = 'alt = ' + string(format = '%0.2d', alt[i])
+        title = string(format = 'alt = %d', alt[i]) + param_label
+
+        if i eq spec0_index then title = 'Diff spec, ' + title
         if i eq specN_index then xtitle = 'Channel' else xtitle = ''
 
         if spec_log then begin
@@ -315,7 +322,7 @@ pro plot_events_pro, top_dir, eevt, vals, zrange = zrange, $
 
         ; Handle things that don't require replotting right here.
         if r eq 'd' or r eq 'D' then begin
-          print, format = 'Selected event %d: %s (%s)', event_index, eevt_id, smoothness
+          print, format = 'Selected event %d: id = %s, date = %s (%s)', event_index, eevt_id, eevt_date, smoothness
         endif else if r eq 'k' or r eq 'K' then begin
           print, format = 'Keeping event %s in window %d', eevt_id, win_index
           create_new_win = !true
