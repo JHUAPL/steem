@@ -33,9 +33,19 @@ pro display_global_properties, top_dir, eevt, vals, eevt_ids, $
   ; Standard procedural plot set-up.
   standard_plot
 
+  noaxes = 0
+  nosym = 0
+  noline = 6
+  diamond = 4
+  square = 6
   fg_color = 105
   accent_color = 255
+  accent_color2 = 154
 
+  exact = 1
+  suppress = 4
+
+  ; Pass this instead of 0 to functions/procedures. In IDL, 0 is indistinguishable from "unset".
   zero = 1.d-308
   neg_zero = -zero
 
@@ -44,9 +54,36 @@ pro display_global_properties, top_dir, eevt, vals, eevt_ids, $
   evt_x = extract_array0(eevt, vals, x_quant)
   evt_y = extract_array0(eevt, vals, y_quant)
 
-  use_spectrogram = !true
+  use_plot_function = !true
+  use_spectrogram = !false
 
-  if display_scatter then begin
+  if use_plot_function then begin
+    margins = [ 15.0 * xunit, 8.0 * xunit, 2.0 * yunit, 20.0 * yunit ]
+
+    pos = plot_coord(row_index, column_index, num_rows, 1, margins = margins)
+
+    if row_index eq 0 then begin
+
+      plot = plot(evt_x, evt_y, xtitle = x_quant, ytitle = y_quant, $
+        symbol = 'Diamond', linestyle = noline, $
+        /current, $
+        position = pos)
+
+    endif else begin
+
+      plot = plot(evt_x, evt_y, xtitle = x_quant, ytitle = y_quant, $
+        symbol = 'Diamond', linestyle = noline, $
+        /current, $
+        position = pos)
+
+    endelse
+
+    plot = plot([ evt_x[0] ], [ evt_y[0] ], axis_style = noaxes, $
+      symbol = 'Diamond', sym_color = 'Red', sym_thick = 2.0, linestyle = noline, $
+      /current, $
+      position = pos)
+
+  endif else if display_scatter then begin
 
     margins = [ 15.0 * xunit, 8.0 * xunit, 2.0 * yunit, 20.0 * yunit ]
 
@@ -65,39 +102,72 @@ pro display_global_properties, top_dir, eevt, vals, eevt_ids, $
 
     endelse
 
-  endif else if use_spectrogram then begin
-    ; This doesn't quite work. The contour plot just looks wrong because
-    margins = [ 8.0 * xunit, 8.0 * xunit, 2.0 * yunit, 8.0 * yunit ]
+  endif else begin
+
+    margins = [ 12.0 * xunit, 8.0 * xunit, 2.0 * yunit, 8.0 * yunit ]
 
     win_index = 0
 
+    ; TODO: this is overkill if not actually using the spectrogram. Just get the ranges if we end up
+    ; with standard plots.
     convert_to_spectrogram, evt_x, evt_y, eevt_ids, xout = x, yout = y, zout = z, xrange = xrange, yrange = yrange, zrange = zrange
 
-    cb_height = 0.5
-    spec_log = !false
+    if use_spectrogram then begin
+      ; This doesn't quite work. The contour plot just looks wrong because the points are really scattered.
+      cb_height = 0.5
+      spec_log = !false
 
-    ;  pos = plot_coord(row_index - cb_height, column_index, num_rows, 1, height = cb_height, margins = margins)
-    ;
-    ;  !null = color_bar_pro(z, zrange = zrange, zlog = spec_log, xtitle = 'Event ID', position = pos)
+      ;  pos = plot_coord(row_index - cb_height, column_index, num_rows, 1, height = cb_height, margins = margins)
+      ;
+      ;  !null = color_bar_pro(z, zrange = zrange, zlog = spec_log, xtitle = 'Event ID', position = pos)
 
-    ;  ++row_index
+      ;  ++row_index
 
-    ;  pos = plot_coord(row_index, column_index, num_rows, 1, height = 2.0 - cb_height, margins = margins)
-    pos = plot_coord(row_index, column_index, num_rows, 1, margins = margins)
+      ;  pos = plot_coord(row_index, column_index, num_rows, 1, height = 2.0 - cb_height, margins = margins)
+      pos = plot_coord(row_index, column_index, num_rows, 1, margins = margins)
 
-    !null = plot_spectrogram_pro(z, x, y, $
-      xrange = xrange, xstyle = 1, yrange = yrange, ystyle = 1, $
-      zrange = zrange, zlog = spec_log, $
-      ;    xtickformat = xformat, xtickunits = xtickunits, xticks = 5, $
-      xtitle = '', $
-      position = pos)
+      !null = plot_spectrogram_pro(z, x, y, $
+        xrange = xrange, xstyle = 1, yrange = yrange, ystyle = 1, $
+        zrange = zrange, zlog = spec_log, $
+        ;    xtickformat = xformat, xtickunits = xtickunits, xticks = 5, $
+        xtitle = '', $
+        position = pos)
 
-    ;  ++row_index
+      ;  ++row_index
 
-  endif else begin
-    ; TODO code this to use regular old plot procedure and oplot to highlight points
-    ; maybe so one can step through events and have each event highlighted on all
-    ; 3 plots?
+    endif else begin
+
+      pos = plot_coord(row_index, column_index, num_rows, 1, margins = margins)
+
+      if row_index eq 0 then begin
+
+        plot, evt_x, evt_y, xtitle = x_quant, ytitle = y_quant, $
+          xrange = xrange, xstyle = exact, yrange = yrange, ystyle = exact, $
+          xtickformat = xformat, xtickunits = xtickunits, xticks = 5, thick = 2, $
+          psym = diamond, symsize = 2, $
+          color = fg_color, $
+          position = pos
+
+      endif else begin
+
+        plot, evt_x, evt_y, xtitle = x_quant, ytitle = y_quant, $
+          xrange = xrange, xstyle = exact, yrange = yrange, ystyle = exact, $
+          xtickformat = xformat, xtickunits = xtickunits, xticks = 5, thick = 2, $
+          psym = diamond, symsize = 2, $
+          color = fg_color, $
+          /noerase, $
+          position = pos
+
+      endelse
+
+      for i = 0, eevt_ids.length - 1 do begin
+
+      endfor
+      plots, [ evt_x[0] ], [ evt_y[0] ], $
+        psym = no_sym, symsize = 6, color = accent_color
+
+    endelse
+
   endelse
 
 end

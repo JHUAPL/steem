@@ -4,15 +4,6 @@
 ;
 ; As of this check-in, this is mostly in sync with the procedural code, plot_events_pro.pro.
 ; However, at present the plan is not to use this OO version, so not fixing the problems.
-function PlotEventHandler::KeyHandler, Window, IsASCII, Character, KeyValue, X, Y, Press, Release, KeyMode
-  if Press then print,'press'
-  if Release then print,'release'
-end
-
-pro PlotEventHandler__define
-  void = { PlotEventHandler, inherits GraphicsEventAdapter }
-end
-
 pro interactive_plot_events, eevt, vals, xsize = xsize, ysize = ysize, $
   max_windows = max_windows, max_spec_per_step = max_spec_per_step, $
   mon_index = mon_index
