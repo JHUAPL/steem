@@ -1,54 +1,86 @@
-;function PlotEventHandler::KeyHandler, Window, IsASCII, Character, KeyValue, X, Y, Press, Release, KeyMode
-;  if Press then print,'key press'
-;  if Release then print,'key release'
-;end
+function PlotEventHandler::init, controller
+  self.controller = ptr_new(controller)
+  self.plots = ptr_new()
+  self.current_plot = ptr_new(/allocate)
+
+  return, self->GraphicsEventAdapter::init()
+end
 
 function PlotEventHandler::MouseDown, window, x, y, button, keymods, clicks
 
-  if button eq 1 and clicks eq 1 then begin
+  if self.plots eq !null then return, 1
 
-    if self.plots ne !null then begin
+  if button ne 1 then return, 1
 
-      plots = *self.plots
+  plots = *self.plots
 
-      point = window.ConvertCoord(x, y, /device, /to_normal)
+  if clicks eq 1 then begin
 
-      point = point[0:1]
+    keymod_shift = 1
+    select_multiple_events = keymods and keymod_shift
 
-      found_eevt_id = -1
-      for i = 0, n_elements(plots) - 1 do begin
+    point = window.ConvertCoord(x, y, /device, /to_normal)
 
-        found_eevt_id = plots[i]->find_closest_event(point)
-        if found_eevt_id ne -1 then break
-      endfor
+    point = point[0:1]
 
-      if found_eevt_id ne -1 then begin
-        for i = 0, n_elements(plots) - 1 do begin
-          selection_toggle_on = plots[i]->toggle_selection(found_eevt_id)
-        endfor
+    found_eevt_id = -1
+    for i = 0, n_elements(plots) - 1 do begin
+      ploti = plots[i]
 
-        if selection_toggle_on then print, 'Selected event ', found_eevt_id $
-        else print, 'De-selected event ', found_eevt_id
+      if ploti->is_on_plot(point) then begin
+        current_plot = *self.current_plot
+
+        if current_plot ne ploti then begin
+
+          self.current_plot = ptr_new(ploti)
+
+          if current_plot ne !null then return, 1
+
+        endif
+
+        found_eevt_id = ploti->find_closest_event(point)
+
+        break
       endif
 
-    endif
 
-  endif else if button eq 1 and clicks eq 2 then begin
+    endfor
 
-    if self.plots ne !null then begin
-      plots = *self.plots
+    if not select_multiple_events then begin
 
       for i = 0, n_elements(plots) - 1 do begin
         plots[i]->clear_selections
       endfor
+
     endif
 
-    ; Return 0  here to disable the default handler from
-    ; also getting called
+    if found_eevt_id ne -1 then begin
+      for i = 0, n_elements(plots) - 1 do begin
+        selection_toggle_on = plots[i]->toggle_selection(found_eevt_id)
+      endfor
+
+      if selection_toggle_on then print, 'Selected event ', found_eevt_id $
+      else print, 'De-selected event ', found_eevt_id
+    endif
+
+
+  endif else if clicks eq 2 then begin
+
+    for i = 0, n_elements(plots) - 1 do begin
+      plots[i]->clear_selections
+    endfor
+
+    ; Return 0  here to disable the default handler from getting called.
+    ; This pops up an annoying properties window.
     return, 0
   endif
 
   return, 1
+end
+
+function PlotEventHandler::KeyHandler, window, isASCII, character, keyvalue, x, y, press, release, keymode
+  if press then print, 'key press ', character, keyvalue, x, y, press, release, keymode
+  if release then print, 'key release ', character, keyvalue, x, y, press, release, keymode
 end
 
 pro PlotEventHandler::add_plot, the_plot
@@ -60,17 +92,14 @@ pro PlotEventHandler::add_plot, the_plot
 
 end
 
-function PlotEventHandler::init
-  self.plots = ptr_new()
-  self.just_selected = !false
-
-  return, self->GraphicsEventAdapter::init()
-end
-
 ; The "__define" method must come last in the file; otherwise, methods will be undefined.
 pro PlotEventHandler__define
   ; Initial values specified after colon must be there or there will be an error.
   ; However, the values specified are apparently ignored. array and object initializations
   ; must be repeated in the init method.
-  win = { PlotEventHandler, inherits GraphicsEventAdapter, plots:ptr_new(), just_selected:!false }
+  win = { PlotEventHandler, inherits GraphicsEventAdapter, $
+    controller:ptr_new(), $
+    plots:ptr_new(), $
+    current_plot:ptr_new() $
+  }
 end

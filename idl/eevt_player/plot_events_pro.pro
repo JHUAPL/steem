@@ -5,8 +5,13 @@ pro plot_events_pro, top_dir, eevt, vals, eevt_ids, zrange = zrange, $
 
   common draw_colors, fg_color, accent_color
 
-  if eevt eq !null then begin
+  if eevt eq !null or vals eq !null or eevt_ids eq !null then begin
     print, 'No events to plot'
+    return
+  endif
+
+  if n_elements(eevt) ne n_elements(vals) or n_elements(eevt) ne n_elements(eevt_ids) then begin
+    print, 'Mismatched numbers of elements in inputs'
     return
   endif
 
@@ -73,7 +78,7 @@ pro plot_events_pro, top_dir, eevt, vals, eevt_ids, zrange = zrange, $
   xtickunits = [ 'Minutes' ]
 
   win_index = 0
-  dims = eevt.dim
+  number_events = n_elements(eevt_ids)
 
   title = string(FORMAT = "E.E. Events %d", win_index)
 
@@ -84,7 +89,7 @@ pro plot_events_pro, top_dir, eevt, vals, eevt_ids, zrange = zrange, $
   spec_log = !true
 
   event_index = 0
-  while event_index ge 0 and event_index lt dims[0] do begin
+  while event_index ge 0 and event_index lt number_events do begin
 
     this_eevt = eevt[event_index, *]
     eevt_len = this_eevt[0].eevt.evt_length
@@ -356,7 +361,7 @@ pro plot_events_pro, top_dir, eevt, vals, eevt_ids, zrange = zrange, $
       else print, 'Cannot back up before first event. Use q to quit.'
     endif else if r eq 'n' or r eq ' ' then begin
       ; If on the last event, don't exit the loop because of hitting n or <space>.
-      if event_index lt dims[0] - 1 then ++event_index $
+      if event_index lt number_events - 1 then ++event_index $
       else print, 'Cannot go past last event. Use q to quit.'
     endif
 

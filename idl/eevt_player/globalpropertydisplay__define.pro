@@ -1,3 +1,16 @@
+function GlobalPropertyDisplay::init, controller
+  self.controller = ptr_new(controller)
+  self.eevt_ids = ptr_new()
+  self.x = ptr_new()
+  self.y = ptr_new()
+  self.pos = ptr_new()
+  self.main_plot = ptr_new()
+  self.highlight = ptr_new()
+  self.selected = ptr_new()
+
+  return, 1
+end
+
 pro GlobalPropertyDisplay::set_data, eevt_ids, x, y
   self.eevt_ids = ptr_new(eevt_ids)
   self.x = ptr_new(x)
@@ -16,6 +29,24 @@ pro GlobalPropertyDisplay::set_highlight, highlight
   self.highlight = ptr_new(highlight)
 end
 
+function GlobalPropertyDisplay::is_on_plot, point
+  if self.x ne !null and self.y ne !null and self.pos ne !null and self.main_plot ne !null and self.highlight ne !null then begin
+
+    main_plot = *self.main_plot
+
+    pos = *self.pos
+    ;    pos = main_plot.position
+
+    pointx = point[0]
+    pointy = point[1]
+
+    ; Subtle difference between this and find_closest_event method. Do include points on all borders.
+    if pointx ge pos[0] and pointx le pos[2] and pointy ge pos[1] and pointy le pos[3] then return, !true
+
+    return, !false
+  endif
+end
+
 function GlobalPropertyDisplay::find_closest_event, point
 
   selected_eevt_id = -1
@@ -29,7 +60,8 @@ function GlobalPropertyDisplay::find_closest_event, point
     pointx = point[0]
     pointy = point[1]
 
-    if pointx ge pos[0] and pointx lt pos[2] and pointy ge pos[1] and pointy lt pos[3] then begin
+    ; Subtle difference between this and is_on_plot method. Don't include points on bordors.
+    if pointx gt pos[0] and pointx lt pos[2] and pointy gt pos[1] and pointy lt pos[3] then begin
       ; The clicked point fell within this plot.
       eevt_ids = *self.eevt_ids
       x = *self.x
@@ -211,7 +243,7 @@ pro GlobalPropertyDisplay::display, top_dir, eevt, vals, eevt_ids, $
 
   highlight = plot([ evt_x[0] ], [ evt_y[0] ], $
     symbol = 'Diamond', sym_color = 'Red', sym_thick = 2.0, linestyle = noline, $
-    /current, /overplot, $
+    /current, /overplot, /nodata, $
     position = pos)
 
   self->set_data, eevt_ids, evt_x, evt_y
@@ -221,21 +253,9 @@ pro GlobalPropertyDisplay::display, top_dir, eevt, vals, eevt_ids, $
 
 end
 
-function GlobalPropertyDisplay::init
-  self.eevt_ids = ptr_new()
-  self.x = ptr_new()
-  self.y = ptr_new()
-  self.pos = ptr_new()
-  self.main_plot = ptr_new()
-  self.highlight = ptr_new()
-  self.selected = ptr_new()
-
-  return, 1
-end
-
 pro GlobalPropertyDisplay__define
 
-  !null = { GlobalPropertyDisplay, eevt_ids:ptr_new(), x:ptr_new(), y:ptr_new(), $
+  !null = { GlobalPropertyDisplay, controller:ptr_new(), eevt_ids:ptr_new(), x:ptr_new(), y:ptr_new(), $
     pos:ptr_new(), main_plot:ptr_new(), highlight:ptr_new(), $
     selected:ptr_new() }
 

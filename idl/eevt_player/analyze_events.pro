@@ -15,6 +15,8 @@ select, eevt, vals, eevt_ids $
   ;  , 'alt', 4000.0 $
   )
 
+controller = obj_new('AnalyzeEventsController', eevt, vals, eevt_ids)
+
 ;zmax = max(eevt.eevt.bp_low_spec, /nan, min = zmin)
 ;zrange = [ zmin, zmax ]
 
@@ -47,9 +49,10 @@ endelse
 use_objects = !true
 
 if use_objects then begin
-  smooth_v_sn = obj_new('GlobalPropertyDisplay')
-  alt_v_sn = obj_new('GlobalPropertyDisplay')
-  alt_v_smooth = obj_new('GlobalPropertyDisplay')
+
+  smooth_v_sn = obj_new('GlobalPropertyDisplay', controller)
+  alt_v_sn = obj_new('GlobalPropertyDisplay', controller)
+  alt_v_smooth = obj_new('GlobalPropertyDisplay', controller)
 
   smooth_v_sn->display, top_dir, eevt, vals, eevt_ids, 'sn_tot_norm2', 'sm_ness_all2', $
     row_index = ++row_index, num_rows = num_rows, ysize = ysize, $
