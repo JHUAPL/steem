@@ -10,7 +10,7 @@ pro plot_events_pro, top_dir, eevt, vals, eevt_ids, zrange = zrange, $
     return
   endif
 
-  if n_elements(eevt) ne n_elements(vals) or n_elements(eevt) ne n_elements(eevt_ids) then begin
+  if n_elements(eevt[*, 0]) ne n_elements(vals) or n_elements(eevt[*, 0]) ne n_elements(eevt_ids) then begin
     print, 'Mismatched numbers of elements in inputs'
     return
   endif

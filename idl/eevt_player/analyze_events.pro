@@ -41,7 +41,7 @@ display_scatter = !true
 
 title = string(FORMAT = "E.E. Events %d", win_index)
 if display_scatter then begin
-  win = create_win(mon_index, win_index, xsize = xsize, ysize = ysize, title = title, handler = handler)
+  win = create_win(controller, mon_index, win_index, xsize = xsize, ysize = ysize, title = title, handler = handler)
 endif else begin
   !null = create_win_pro(mon_index, win_index, xsize = xsize, ysize = ysize, title = title)
 endelse

@@ -12,6 +12,8 @@ function AnalyzeEventsController::init, eevt, vals, eevt_ids
   self.eevt = ptr_new(eevt)
   self.vals = ptr_new(vals)
   self.eevt_ids = ptr_new(eevt_ids)
+
+  return, 1
 end
 
 ; Create and show a new view of spectra for the specified selection of event identifiers.
@@ -21,6 +23,8 @@ end
 ;
 pro AnalyzeEventsController::show_spectra, selected_ids
 
+  if selected_ids eq !null then return
+
   ; Get local references to this object's properties.
   eevt = *self.eevt
   vals = *self.vals
@@ -28,12 +32,13 @@ pro AnalyzeEventsController::show_spectra, selected_ids
 
   ; Create a list of indices filtered based on the events matching the specified selection.
   indices = where(eevt_ids eq selected_ids[0])
-  for i = 0, n_elements(selected_ids) - 1 do begin
+  for i = 1, n_elements(selected_ids) - 1 do begin
     indices = [ indices, where(eevt_ids eq selected_ids[i]) ]
   endfor
+  indices = indices[where(indices ne -1)]
 
   ; Apply index filter to the data objects.
-  eevt = eevt[indices]
+  eevt = eevt[indices, *]
   vals = vals[indices]
   eevt_ids = eevt_ids[indices]
 

@@ -79,8 +79,20 @@ function PlotEventHandler::MouseDown, window, x, y, button, keymods, clicks
 end
 
 function PlotEventHandler::KeyHandler, window, isASCII, character, keyvalue, x, y, press, release, keymode
-  if press then print, 'key press ', character, keyvalue, x, y, press, release, keymode
-  if release then print, 'key release ', character, keyvalue, x, y, press, release, keymode
+  character = string(character)
+
+  if character eq 's' or character eq 'S' and release then begin
+
+    the_plots = *self.plots
+    controller = *self.controller
+
+    if the_plots ne !null then begin
+      selected = the_plots[0]->get_selections()
+
+      controller->show_spectra, selected
+    endif
+
+  endif
 end
 
 pro PlotEventHandler::add_plot, the_plot

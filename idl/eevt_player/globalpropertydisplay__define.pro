@@ -1,4 +1,7 @@
 function GlobalPropertyDisplay::init, controller
+
+  if controller eq !null then return, 0
+
   self.controller = ptr_new(controller)
   self.eevt_ids = ptr_new()
   self.x = ptr_new()
@@ -156,6 +159,12 @@ function GlobalPropertyDisplay::toggle_selection, eevt_id
   endelse
 
   return, selected_toggle_on
+end
+
+function GlobalPropertyDisplay::get_selections
+  if self.selected eq !null then return, !null
+
+  return, *self.selected
 end
 
 pro GlobalPropertyDisplay::clear_selections
