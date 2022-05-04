@@ -21,7 +21,7 @@ end
 ; Parameters:
 ;   selected_ids 1-d array of integer event identifiers that specify which events to show
 ;
-pro AnalyzeEventsController::show_spectra, selected_ids
+pro AnalyzeEventsController::show_spectra, selected_ids, window_settings = window_settings
 
   if selected_ids eq !null then return
 
@@ -48,24 +48,8 @@ pro AnalyzeEventsController::show_spectra, selected_ids
   ;zmax = max(eevt.eevt.bp_low_spec, /nan, min = zmin)
   ;zrange = [ zmin, zmax ]
 
-  ; TODO: put these in a separate global property singleton.
-  ; MacBook.
-  ;max_spec_per_step = 1
-  ;mon_index = 0
-  ;ysize = 1028 * 9 / 10
-
-  ; Home monitor.
-  ;  max_spec_per_step = 3
-  ;  mon_index = 1
-  ;  ysize = 1418 * 9 / 10
-
-  ; APL monitor.
-  max_spec_per_step = 3
-  mon_index = 1
-  ysize = 2138* 14 / 15
-
   plot_events_pro, top_dir, eevt, vals, eevt_ids, zrange = zrange, $
-    max_spec_per_step = max_spec_per_step, max_windows = 32, mon_index = mon_index, ysize = ysize
+    window_settings = window_settings
 
 end
 

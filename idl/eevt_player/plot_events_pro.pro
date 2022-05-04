@@ -1,7 +1,5 @@
 pro plot_events_pro, top_dir, eevt, vals, eevt_ids, zrange = zrange, $
-  xsize = xsize, ysize = ysize, $
-  max_windows = max_windows, max_spec_per_step = max_spec_per_step, $
-  mon_index = mon_index
+  window_settings = window_settings
 
   common draw_colors, fg_color, accent_color
 
@@ -15,11 +13,13 @@ pro plot_events_pro, top_dir, eevt, vals, eevt_ids, zrange = zrange, $
     return
   endif
 
-  if not keyword_set(xsize) then xsize = 1280
-  if not keyword_set(ysize) then ysize = 900
-  if not keyword_set(max_windows) then max_windows = 1
-  if not keyword_set(max_spec_per_step) then max_spec_per_step = 3
-  if not keyword_set(mon_index) then mon_index = 0
+  if not keyword_set(window_settings) then window_settings = obj_new('WindowSettings')
+
+  xsize = window_settings.xsize()
+  ysize = window_settings.ysize()
+  max_spec_per_step = window_settings.max_spec()
+
+  max_windows = 32
 
   xunit = 9.0 / xsize
   yunit = 8.0 / ysize
@@ -82,7 +82,7 @@ pro plot_events_pro, top_dir, eevt, vals, eevt_ids, zrange = zrange, $
 
   title = string(FORMAT = "E.E. Events %d", win_index)
 
-  !null = create_win_pro(mon_index, win_index, xsize = xsize, ysize = ysize, title = title)
+  !null = create_win_pro(win_index, title = title, window_settings = window_settings)
 
   show_instructions
 
@@ -370,7 +370,7 @@ pro plot_events_pro, top_dir, eevt, vals, eevt_ids, zrange = zrange, $
 
       title = string(format = "E.E. Events %d", win_index)
 
-      !null = create_win_pro(mon_index, win_index, xsize = xsize, ysize = ysize, title = title)
+      !null = create_win_pro(win_index, title = title, window_settings = window_settings)
 
     endif
 

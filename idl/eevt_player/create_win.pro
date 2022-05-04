@@ -1,9 +1,14 @@
-function create_win, controller, mon_index, win_index, xsize = xsize, ysize = ysize, title = title, $
-  handler = handler
+function create_win, controller, win_index, title = title, handler = handler, $
+  window_settings = window_settings
 
-  get_window_pos, mon_index, win_index, x, y, xsize = xsize, ysize = ysize
+  if not keyword_set(window_settings) then window_settings = obj_new('WindowSettings')
 
-  w = window(position = [ x, y ], dimensions = [ xsize, ysize ], window_title = title)
+  get_window_pos, win_index, x, y, window_settings = window_settings
+
+  xsize = window_settings.xsize()
+  ysize = window_settings.ysize()
+
+  w = window(location = [ x, y ], dimensions = [ xsize, ysize ], window_title = title)
 
   handler = obj_new('PlotEventHandler', controller)
 

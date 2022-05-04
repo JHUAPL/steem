@@ -1,6 +1,13 @@
-pro get_window_pos, mon_index, win_index, x, y, xsize = xsize, ysize = ysize
-  if not keyword_set(xsize) then xsize = 1024
-  if not keyword_set(ysize) then ysize = 900
+pro get_window_pos, win_index, x, y, window_settings = window_settings
+
+  if not keyword_set(window_settings) then $
+    window_settings = obj_new('WindowSettings')
+
+  xsize = window_settings.xsize()
+  ysize = window_settings.ysize()
+  switch_display = window_settings.switch_display()
+
+  if switch_display then mon_index = 0 else mon_index = 1
 
   oInfo = obj_new('IDLsysMonitorInfo')
   num_mons = oInfo->GetNumberOfMonitors()

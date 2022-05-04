@@ -1,8 +1,6 @@
 pro display_global_properties, top_dir, eevt, vals, eevt_ids, $
-  x_quant, y_quant, $
-  xsize = xsize, ysize = ysize, $
-  mon_index = mon_index, row_index = row_index, num_rows = num_rows, $
-  display_scatter = display_scatter
+  x_quant, y_quant, row_index = row_index, num_rows = num_rows, $
+  display_scatter = display_scatter, window_settings = window_settings
 
   common draw_colors, fg_color, accent_color
 
@@ -11,13 +9,13 @@ pro display_global_properties, top_dir, eevt, vals, eevt_ids, $
     return
   endif
 
-  if not keyword_set(xsize) then xsize = 1280
-  if not keyword_set(ysize) then ysize = 900
-  if not keyword_set(max_windows) then max_windows = 1
-  if not keyword_set(max_spec_per_step) then max_spec_per_step = 3
-  if not keyword_set(mon_index) then mon_index = 0
   if not keyword_set(row_index) then row_index = 0
   if not keyword_set(num_rows) then num_rows = 1
+  if not keyword_set(window_settings) then window_settings = obj_new('WindowSettings')
+
+  xsize = window_settings.xsize()
+  ysize = window_settings.ysize()
+  max_spec_per_step = window_settings.max_spec()
 
   xunit = 9.0 / xsize
   yunit = 8.0 / ysize

@@ -1,4 +1,5 @@
 
+
 top_dir = '/Users/peachjm1/jhuapl/messenger-2022/'
 
 dir = top_dir + 'working/input/'
@@ -25,25 +26,20 @@ num_rows = 3
 
 win_index = 0
 
-; MacBook.
-;mon_index = 0
-;ysize = 1028 * 9 / 10
-
-; Home monitor.
-;mon_index = 1
-;ysize = 1418 * 9 / 10
-
-; APL monitor.
-mon_index = 1
-ysize = 2138 * 14 / 15
+; Small display.
+;window_settings = obj_new('WindowSettings')
+; Medium display.
+;window_settings = obj_new('WindowSettings', ysize = 1418 * 9 / 10, max_spec = 3)
+; Large display.
+window_settings = obj_new('WindowSettings', ysize = 2138* 14 / 15, max_spec = 5)
 
 display_scatter = !true
 
 title = string(FORMAT = "E.E. Events %d", win_index)
 if display_scatter then begin
-  win = create_win(controller, mon_index, win_index, xsize = xsize, ysize = ysize, title = title, handler = handler)
+  win = create_win(controller, win_index, title = title, handler = handler, window_settings = window_settings)
 endif else begin
-  !null = create_win_pro(mon_index, win_index, xsize = xsize, ysize = ysize, title = title)
+  !null = create_win_pro(win_index, title = title, window_settings = window_settings)
 endelse
 
 use_objects = !true
@@ -55,16 +51,16 @@ if use_objects then begin
   alt_v_smooth = obj_new('GlobalPropertyDisplay', controller)
 
   smooth_v_sn->display, top_dir, eevt, vals, eevt_ids, 'sn_tot_norm2', 'sm_ness_all2', $
-    row_index = ++row_index, num_rows = num_rows, ysize = ysize, $
-    display_scatter = display_scatter
+    row_index = ++row_index, num_rows = num_rows, $
+    display_scatter = display_scatter, window_settings = window_settings
 
   alt_v_sn->display, top_dir, eevt, vals, eevt_ids, 'sn_tot_norm2', 'alt', $
-    row_index = ++row_index, num_rows = num_rows, ysize = ysize, $
-    display_scatter = display_scatter
+    row_index = ++row_index, num_rows = num_rows, $
+    display_scatter = display_scatter, window_settings = window_settings
 
   alt_v_smooth->display, top_dir, eevt, vals, eevt_ids, 'sm_ness_all2', 'alt', $
-    row_index = ++row_index, num_rows = num_rows, ysize = ysize, $
-    display_scatter = display_scatter
+    row_index = ++row_index, num_rows = num_rows, $
+    display_scatter = display_scatter, window_settings = window_settings
 
   handler->add_plot, smooth_v_sn
   handler->add_plot, alt_v_sn
@@ -73,16 +69,13 @@ if use_objects then begin
 endif else begin
 
   display_global_properties, top_dir, eevt, vals, eevt_ids, 'sn_tot_norm2', 'sm_ness_all2', $
-    mon_index = mon_index, row_index = ++row_index, num_rows = num_rows, ysize = ysize, $
-    display_scatter = display_scatter
+    row_index = ++row_index, num_rows = num_rows, display_scatter = display_scatter, window_settings = window_settings
 
   display_global_properties, top_dir, eevt, vals, eevt_ids, 'sn_tot_norm2', 'alt', $
-    mon_index = mon_index, row_index = ++row_index, num_rows = num_rows, ysize = ysize, $
-    display_scatter = display_scatter
+    row_index = ++row_index, num_rows = num_rows, display_scatter = display_scatter, window_settings = window_settings
 
   display_global_properties, top_dir, eevt, vals, eevt_ids, 'sm_ness_all2', 'alt', $
-    mon_index = mon_index, row_index = ++row_index, num_rows = num_rows, ysize = ysize, $
-    display_scatter = display_scatter
+    row_index = ++row_index, num_rows = num_rows, display_scatter = display_scatter, window_settings = window_settings
 
 endelse
 

@@ -4,20 +4,19 @@
 ;
 ; As of this check-in, this is mostly in sync with the procedural code, plot_events_pro.pro.
 ; However, at present the plan is not to use this OO version, so not fixing the problems.
-pro interactive_plot_events, eevt, vals, xsize = xsize, ysize = ysize, $
-  max_windows = max_windows, max_spec_per_step = max_spec_per_step, $
-  mon_index = mon_index
+pro interactive_plot_events, eevt, vals, window_settings = window_settings
 
   if eevt eq !null then begin
     print, 'No events to plot'
     return
   endif
 
-  if not keyword_set(xsize) then xsize = 1280
-  if not keyword_set(ysize) then ysize = 900
-  if not keyword_set(max_windows) then max_windows = 1
-  if not keyword_set(max_spec_per_step) then max_spec_per_step = 3
-  if not keyword_set(mon_index) then mon_index = 0
+  if not keyword_set(window_settings) then window_settings = obj_new('WindowSettings')
+
+  xsize = window_settings.xsize()
+  ysize = window_settings.ysize()
+  max_spec_per_step = window_settings.max_spec()
+  max_windows = 32
 
   device, decomposed = 0
   loadct, 13, /silent
@@ -45,7 +44,7 @@ pro interactive_plot_events, eevt, vals, xsize = xsize, ysize = ysize, $
 
   title = string(FORMAT = "E.E. Events %d", win_index)
 
-  windows[win_index] = create_win(mon_index, win_index, xsize = xsize, ysize = ysize, title = title)
+  windows[win_index] = create_win(win_index, title = title, window_settings = window_settings)
 
   show_instructions
 
@@ -261,7 +260,7 @@ pro interactive_plot_events, eevt, vals, xsize = xsize, ysize = ysize, $
       title = string(format = "E.E. Events %d", win_index)
 
       if windows[win_index] eq !null then begin
-        windows[win_index] = create_win(mon_index, win_index, xsize = xsize, ysize = ysize, title = title)
+        windows[win_index] = create_win(win_index, title = title, window_settings = window_settings)
       endif else begin
         windows[win_index].SetCurrent
       endelse
