@@ -42,13 +42,10 @@ pro AnalyzeEventsController::show_spectra, selected_ids, window_settings = windo
   vals = vals[indices]
   eevt_ids = eevt_ids[indices]
 
-  ; TODO: put this in a separate global property singleton.
-  top_dir = '/Users/peachjm1/jhuapl/messenger-2022/'
-
   ;zmax = max(eevt.eevt.bp_low_spec, /nan, min = zmin)
   ;zrange = [ zmin, zmax ]
 
-  plot_events_pro, top_dir, eevt, vals, eevt_ids, zrange = zrange, $
+  plot_events_pro, eevt, vals, eevt_ids, zrange = zrange, $
     window_settings = window_settings
 
 end

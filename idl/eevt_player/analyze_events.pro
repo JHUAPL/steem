@@ -50,15 +50,15 @@ if use_objects then begin
   alt_v_sn = obj_new('GlobalPropertyDisplay', controller)
   alt_v_smooth = obj_new('GlobalPropertyDisplay', controller)
 
-  smooth_v_sn->display, top_dir, eevt, vals, eevt_ids, 'sn_tot_norm2', 'sm_ness_all2', $
+  smooth_v_sn->display, eevt, vals, eevt_ids, 'sn_tot_norm2', 'sm_ness_all2', $
     row_index = ++row_index, num_rows = num_rows, $
     display_scatter = display_scatter, window_settings = window_settings
 
-  alt_v_sn->display, top_dir, eevt, vals, eevt_ids, 'sn_tot_norm2', 'alt', $
+  alt_v_sn->display, eevt, vals, eevt_ids, 'sn_tot_norm2', 'alt', $
     row_index = ++row_index, num_rows = num_rows, $
     display_scatter = display_scatter, window_settings = window_settings
 
-  alt_v_smooth->display, top_dir, eevt, vals, eevt_ids, 'sm_ness_all2', 'alt', $
+  alt_v_smooth->display, eevt, vals, eevt_ids, 'sm_ness_all2', 'alt', $
     row_index = ++row_index, num_rows = num_rows, $
     display_scatter = display_scatter, window_settings = window_settings
 
@@ -68,13 +68,13 @@ if use_objects then begin
 
 endif else begin
 
-  display_global_properties, top_dir, eevt, vals, eevt_ids, 'sn_tot_norm2', 'sm_ness_all2', $
+  display_global_properties, eevt, vals, eevt_ids, 'sn_tot_norm2', 'sm_ness_all2', $
     row_index = ++row_index, num_rows = num_rows, display_scatter = display_scatter, window_settings = window_settings
 
-  display_global_properties, top_dir, eevt, vals, eevt_ids, 'sn_tot_norm2', 'alt', $
+  display_global_properties, eevt, vals, eevt_ids, 'sn_tot_norm2', 'alt', $
     row_index = ++row_index, num_rows = num_rows, display_scatter = display_scatter, window_settings = window_settings
 
-  display_global_properties, top_dir, eevt, vals, eevt_ids, 'sm_ness_all2', 'alt', $
+  display_global_properties, eevt, vals, eevt_ids, 'sm_ness_all2', 'alt', $
     row_index = ++row_index, num_rows = num_rows, display_scatter = display_scatter, window_settings = window_settings
 
 endelse

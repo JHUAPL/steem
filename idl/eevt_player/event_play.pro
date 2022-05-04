@@ -25,7 +25,7 @@ select, eevt, vals, eevt_ids $
 ; Large display.
 window_settings = obj_new('WindowSettings', ysize = 2138* 14 / 15, max_spec = 5)
 
-plot_events_pro, top_dir, eevt, vals, eevt_ids, zrange = zrange, $
+plot_events_pro, eevt, vals, eevt_ids, zrange = zrange, $
   window_settings = window_settings
 
 end

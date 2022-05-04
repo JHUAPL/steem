@@ -174,7 +174,7 @@ pro GlobalPropertyDisplay::clear_selections
   highlight.hide = 1
 end
 
-pro GlobalPropertyDisplay::display, top_dir, eevt, vals, eevt_ids, $
+pro GlobalPropertyDisplay::display, eevt, vals, eevt_ids, $
   x_quant, y_quant, $
   row_index = row_index, num_rows = num_rows, $
   display_scatter = display_scatter, window_settings = window_settings
@@ -203,7 +203,6 @@ pro GlobalPropertyDisplay::display, top_dir, eevt, vals, eevt_ids, $
   loadct, 13; Rainbow
   ;  loadct, 32 ; Plasma -- nice contrasts but can't gauge intensity.
   ;  loadct, 74 ; Spectral -- darker = more, not really good and background is red.
-  ;  set_up_color_table, top_dir + 'messenger/color_tables/flir_ct.idl'
 
   ; Standard procedural plot set-up.
   standard_plot
