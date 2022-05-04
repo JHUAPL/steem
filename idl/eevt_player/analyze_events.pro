@@ -2,13 +2,16 @@
 ; global properties on scatter plots. The user may select one or more events by
 ; clicking on them (hold down space for more than one). Then type the 's" key
 ; (spectrogram) to spawn the event_play tool where you can drill down into spectra
-; for those events.
+; for those events. This one is partly OO in design.
 
 ; Edit these as needed. Dir should point to the directory where you have the data.
 top_dir = '/Users/peachjm1/jhuapl/messenger-2022/'
 dir = top_dir + 'working/input/'
 load, dir, eevt, vals, eevt_ids = eevt_ids
 
+; This is just a dummy value to go with 'parameter' below. This is just so the
+; dictionary always has at least one thing in it. There is no field in the data
+; called "parameter" of course.
 value = -1
 
 ; Edit this next block as desired to filter the events in different ways.
@@ -31,7 +34,8 @@ select, eevt, vals, eevt_ids $
 
 ; Uncomment one of these to get the right settings for your monitor. If plots
 ; are appearing on the wrong monitor, add or toggle the parameter
-; switch_display = !true and it should swap which monitor it uses.
+; switch_display = !true and it should swap which monitor it uses. max_spec
+; controls how many spectra you can see at a time.
 ;
 ; Small display.
 ;window_settings = obj_new('WindowSettings')
