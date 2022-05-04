@@ -1,6 +1,6 @@
 pro display_global_properties, eevt, vals, eevt_ids, $
   x_quant, y_quant, row_index = row_index, num_rows = num_rows, $
-  display_scatter = display_scatter, window_settings = window_settings
+  window_settings = window_settings
 
   common draw_colors, fg_color, accent_color
 
@@ -51,120 +51,29 @@ pro display_global_properties, eevt, vals, eevt_ids, $
   evt_x = extract_array0(eevt, vals, x_quant)
   evt_y = extract_array0(eevt, vals, y_quant)
 
-  use_plot_function = !true
-  use_spectrogram = !false
+  margins = [ 15.0 * xunit, 8.0 * xunit, 2.0 * yunit, 20.0 * yunit ]
 
-  if use_plot_function then begin
-    margins = [ 15.0 * xunit, 8.0 * xunit, 2.0 * yunit, 20.0 * yunit ]
+  pos = plot_coord(row_index, column_index, num_rows, 1, margins = margins)
 
-    pos = plot_coord(row_index, column_index, num_rows, 1, margins = margins)
+  if row_index eq 0 then begin
 
-    if row_index eq 0 then begin
-
-      plot = plot(evt_x, evt_y, xtitle = x_quant, ytitle = y_quant, $
-        symbol = 'Diamond', linestyle = noline, $
-        /current, $
-        position = pos)
-
-    endif else begin
-
-      plot = plot(evt_x, evt_y, xtitle = x_quant, ytitle = y_quant, $
-        symbol = 'Diamond', linestyle = noline, $
-        /current, $
-        position = pos)
-
-    endelse
-
-    plot = plot([ evt_x[0] ], [ evt_y[0] ], axis_style = noaxes, $
-      symbol = 'Diamond', sym_color = 'Red', sym_thick = 2.0, linestyle = noline, $
+    plot = plot(evt_x, evt_y, xtitle = x_quant, ytitle = y_quant, $
+      symbol = 'Diamond', linestyle = noline, $
       /current, $
       position = pos)
 
-  endif else if display_scatter then begin
-
-    margins = [ 15.0 * xunit, 8.0 * xunit, 2.0 * yunit, 20.0 * yunit ]
-
-    pos = plot_coord(row_index, column_index, num_rows, 1, margins = margins)
-
-    if row_index eq 0 then begin
-
-      plot = scatterplot(evt_x, evt_y, xtitle = x_quant, ytitle = y_quant, $
-        /sym_filled, position = pos)
-
-    endif else begin
-
-      plot = scatterplot(evt_x, evt_y, xtitle = x_quant, ytitle = y_quant, $
-        /current, $
-        /sym_filled, position = pos)
-
-    endelse
-
   endif else begin
 
-    margins = [ 12.0 * xunit, 8.0 * xunit, 2.0 * yunit, 8.0 * yunit ]
-
-    win_index = 0
-
-    ; TODO: this is overkill if not actually using the spectrogram. Just get the ranges if we end up
-    ; with standard plots.
-    convert_to_spectrogram, evt_x, evt_y, eevt_ids, xout = x, yout = y, zout = z, xrange = xrange, yrange = yrange, zrange = zrange
-
-    if use_spectrogram then begin
-      ; This doesn't quite work. The contour plot just looks wrong because the points are really scattered.
-      cb_height = 0.5
-      spec_log = !false
-
-      ;  pos = plot_coord(row_index - cb_height, column_index, num_rows, 1, height = cb_height, margins = margins)
-      ;
-      ;  !null = color_bar_pro(z, zrange = zrange, zlog = spec_log, xtitle = 'Event ID', position = pos)
-
-      ;  ++row_index
-
-      ;  pos = plot_coord(row_index, column_index, num_rows, 1, height = 2.0 - cb_height, margins = margins)
-      pos = plot_coord(row_index, column_index, num_rows, 1, margins = margins)
-
-      !null = plot_spectrogram_pro(z, x, y, $
-        xrange = xrange, xstyle = 1, yrange = yrange, ystyle = 1, $
-        zrange = zrange, zlog = spec_log, $
-        ;    xtickformat = xformat, xtickunits = xtickunits, xticks = 5, $
-        xtitle = '', $
-        position = pos)
-
-      ;  ++row_index
-
-    endif else begin
-
-      pos = plot_coord(row_index, column_index, num_rows, 1, margins = margins)
-
-      if row_index eq 0 then begin
-
-        plot, evt_x, evt_y, xtitle = x_quant, ytitle = y_quant, $
-          xrange = xrange, xstyle = exact, yrange = yrange, ystyle = exact, $
-          xtickformat = xformat, xtickunits = xtickunits, xticks = 5, thick = 2, $
-          psym = diamond, symsize = 2, $
-          color = fg_color, $
-          position = pos
-
-      endif else begin
-
-        plot, evt_x, evt_y, xtitle = x_quant, ytitle = y_quant, $
-          xrange = xrange, xstyle = exact, yrange = yrange, ystyle = exact, $
-          xtickformat = xformat, xtickunits = xtickunits, xticks = 5, thick = 2, $
-          psym = diamond, symsize = 2, $
-          color = fg_color, $
-          /noerase, $
-          position = pos
-
-      endelse
-
-      for i = 0, eevt_ids.length - 1 do begin
-
-      endfor
-      plots, [ evt_x[0] ], [ evt_y[0] ], $
-        psym = no_sym, symsize = 6, color = accent_color
-
-    endelse
+    plot = plot(evt_x, evt_y, xtitle = x_quant, ytitle = y_quant, $
+      symbol = 'Diamond', linestyle = noline, $
+      /current, $
+      position = pos)
 
   endelse
+
+  plot = plot([ evt_x[0] ], [ evt_y[0] ], axis_style = noaxes, $
+    symbol = 'Diamond', sym_color = 'Red', sym_thick = 2.0, linestyle = noline, $
+    /current, $
+    position = pos)
 
 end

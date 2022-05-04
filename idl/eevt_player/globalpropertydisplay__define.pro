@@ -177,7 +177,7 @@ end
 pro GlobalPropertyDisplay::display, eevt, vals, eevt_ids, $
   x_quant, y_quant, $
   row_index = row_index, num_rows = num_rows, $
-  display_scatter = display_scatter, window_settings = window_settings
+  window_settings = window_settings
 
   common draw_colors, fg_color, accent_color
 
