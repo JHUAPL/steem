@@ -322,7 +322,8 @@ pro plot_events_pro, eevt, vals, eevt_ids, zrange = zrange, $
         replot = r eq ' ' or r eq 'b' or r eq 'B' or $
           r eq 'n' or r eq 'N' or r eq 'p' or r eq 'P' or $
           r eq 'l' or r eq 'L' or $
-          r eq 'q' or r eq 'Q'
+          r eq 'q' or r eq 'Q' or $
+          r eq 'r' or r eq 'R'
 
         ; Handle things that don't require replotting right here.
         if r eq 'd' or r eq 'D' then begin
