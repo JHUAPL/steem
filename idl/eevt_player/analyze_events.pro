@@ -48,6 +48,8 @@ window_settings = obj_new('WindowSettings', ysize = 2138* 14 / 15, max_spec = 5)
 ; all the plots are managed and talk to each other. For now, just need it here.
 controller = obj_new('AnalyzeEventsController', eevt, vals, eevt_ids)
 
+handler = obj_new('AnalyzeEventsHandler', controller)
+
 ; Make a new window in which to show the events for this analysis. This has
 ; an output keyword handler -- that is the object that handles events in the
 ; window. The plots need to interact with that.
