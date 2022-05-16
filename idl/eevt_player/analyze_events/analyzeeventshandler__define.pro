@@ -1,4 +1,4 @@
-function PlotEventHandler::init, controller
+function AnalyzeEventsHandler::init, controller
   self.controller = ptr_new(controller)
   self.plots = ptr_new()
   self.current_plot = ptr_new(/allocate)
@@ -6,7 +6,7 @@ function PlotEventHandler::init, controller
   return, self->GraphicsEventAdapter::init()
 end
 
-function PlotEventHandler::MouseDown, window, x, y, button, keymods, clicks
+function AnalyzeEventsHandler::MouseDown, window, x, y, button, keymods, clicks
 
   if self.plots eq !null then return, 1
 
@@ -78,7 +78,7 @@ function PlotEventHandler::MouseDown, window, x, y, button, keymods, clicks
   return, 1
 end
 
-function PlotEventHandler::KeyHandler, window, isASCII, character, keyvalue, x, y, press, release, keymode
+function AnalyzeEventsHandler::KeyHandler, window, isASCII, character, keyvalue, x, y, press, release, keymode
   character = string(character)
 
   if character eq 's' or character eq 'S' and release then begin
@@ -95,7 +95,7 @@ function PlotEventHandler::KeyHandler, window, isASCII, character, keyvalue, x, 
   endif
 end
 
-pro PlotEventHandler::add_plot, the_plot
+pro AnalyzeEventsHandler::add_plot, the_plot
 
   if self.plots ne !null then new_plots = [ *self.plots, the_plot ] $
   else new_plots = [ the_plot ]
@@ -105,11 +105,11 @@ pro PlotEventHandler::add_plot, the_plot
 end
 
 ; The "__define" method must come last in the file; otherwise, methods will be undefined.
-pro PlotEventHandler__define
+pro AnalyzeEventsHandler__define
   ; Initial values specified after colon must be there or there will be an error.
   ; However, the values specified are apparently ignored. array and object initializations
   ; must be repeated in the init method.
-  win = { PlotEventHandler, inherits GraphicsEventAdapter, $
+  win = { AnalyzeEventsHandler, inherits GraphicsEventAdapter, $
     controller:ptr_new(), $
     plots:ptr_new(), $
     current_plot:ptr_new() $
