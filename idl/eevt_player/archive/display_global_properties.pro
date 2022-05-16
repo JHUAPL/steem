@@ -1,6 +1,5 @@
 pro display_global_properties, eevt, vals, eevt_ids, $
-  x_quant, y_quant, row_index = row_index, num_rows = num_rows, $
-  window_settings = window_settings
+  x_quant, y_quant, row_index = row_index, num_rows = num_rows
 
   common draw_colors, fg_color, accent_color
 
@@ -11,8 +10,8 @@ pro display_global_properties, eevt, vals, eevt_ids, $
 
   if not keyword_set(row_index) then row_index = 0
   if not keyword_set(num_rows) then num_rows = 1
-  if not keyword_set(window_settings) then window_settings = obj_new('WindowSettings')
 
+  window_settings = obj_new('WindowSettings')
   xsize = window_settings.xsize()
   ysize = window_settings.ysize()
   max_spec_per_step = window_settings.max_spec()

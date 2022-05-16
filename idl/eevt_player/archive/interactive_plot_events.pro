@@ -4,15 +4,15 @@
 ;
 ; As of this check-in, this is mostly in sync with the procedural code, plot_events_pro.pro.
 ; However, at present the plan is not to use this OO version, so not fixing the problems.
-pro interactive_plot_events, eevt, vals, window_settings = window_settings
+pro interactive_plot_events, eevt, vals
 
   if eevt eq !null then begin
     print, 'No events to plot'
     return
   endif
 
-  if not keyword_set(window_settings) then window_settings = obj_new('WindowSettings')
 
+  window_settings = obj_new('WindowSettings')
   xsize = window_settings.xsize()
   ysize = window_settings.ysize()
   max_spec_per_step = window_settings.max_spec()
@@ -44,7 +44,7 @@ pro interactive_plot_events, eevt, vals, window_settings = window_settings
 
   title = string(FORMAT = "E.E. Events %d", win_index)
 
-  windows[win_index] = create_win(win_index, title = title, window_settings = window_settings)
+  windows[win_index] = create_win(win_index, title = title
 
   show_instructions
 
@@ -260,7 +260,7 @@ pro interactive_plot_events, eevt, vals, window_settings = window_settings
       title = string(format = "E.E. Events %d", win_index)
 
       if windows[win_index] eq !null then begin
-        windows[win_index] = create_win(win_index, title = title, window_settings = window_settings)
+        windows[win_index] = create_win(win_index, title = title)
       endif else begin
         windows[win_index].SetCurrent
       endelse

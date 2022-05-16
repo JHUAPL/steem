@@ -1,5 +1,4 @@
-pro plot_events_pro, eevt, vals, eevt_ids, zrange = zrange, $
-  window_settings = window_settings
+pro plot_events_pro, eevt, vals, eevt_ids, zrange = zrange
 
   common draw_colors, fg_color, accent_color
 
@@ -13,8 +12,7 @@ pro plot_events_pro, eevt, vals, eevt_ids, zrange = zrange, $
     return
   endif
 
-  if not keyword_set(window_settings) then window_settings = obj_new('WindowSettings')
-
+  window_settings = obj_new('WindowSettings')
   xsize = window_settings.xsize()
   ysize = window_settings.ysize()
   max_spec_per_step = window_settings.max_spec()
@@ -81,7 +79,7 @@ pro plot_events_pro, eevt, vals, eevt_ids, zrange = zrange, $
 
   title = string(FORMAT = "E.E. Events %d", win_index)
 
-  !null = create_win_pro(win_index, title = title, window_settings = window_settings)
+  !null = create_win_pro(win_index, title = title)
 
   show_instructions
 
@@ -370,7 +368,7 @@ pro plot_events_pro, eevt, vals, eevt_ids, zrange = zrange, $
 
       title = string(format = "E.E. Events %d", win_index)
 
-      !null = create_win_pro(win_index, title = title, window_settings = window_settings)
+      !null = create_win_pro(win_index, title = title)
 
     endif
 

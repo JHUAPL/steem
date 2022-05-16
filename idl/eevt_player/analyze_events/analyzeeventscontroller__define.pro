@@ -21,7 +21,7 @@ end
 ; Parameters:
 ;   selected_ids 1-d array of integer event identifiers that specify which events to show
 ;
-pro AnalyzeEventsController::show_spectra, selected_ids, window_settings = window_settings
+pro AnalyzeEventsController::show_spectra, selected_ids
 
   if selected_ids eq !null then return
 
@@ -45,8 +45,7 @@ pro AnalyzeEventsController::show_spectra, selected_ids, window_settings = windo
   ;zmax = max(eevt.eevt.bp_low_spec, /nan, min = zmin)
   ;zrange = [ zmin, zmax ]
 
-  plot_events_pro, eevt, vals, eevt_ids, zrange = zrange, $
-    window_settings = window_settings
+  plot_events_pro, eevt, vals, eevt_ids, zrange = zrange
 
 end
 

@@ -1,8 +1,6 @@
-pro get_window_pos, win_index, x, y, window_settings = window_settings
+pro get_window_pos, win_index, x, y
 
-  if not keyword_set(window_settings) then $
-    window_settings = obj_new('WindowSettings')
-
+  window_settings = obj_new('WindowSettings')
   xsize = window_settings.xsize()
   ysize = window_settings.ysize()
   switch_display = window_settings.switch_display()

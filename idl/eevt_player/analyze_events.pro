@@ -55,8 +55,7 @@ handler = obj_new('AnalyzeEventsHandler', controller)
 ; window. The plots need to interact with that.
 win_index = 0
 title = string(FORMAT = "E.E. Events %d", win_index)
-win = create_win(controller, win_index, title = title, handler = handler, $
-  window_settings = window_settings)
+win = create_win(controller, win_index, title = title, handler = handler)
 
 ; Create property display objects for each of the plots to be created below.
 smooth_v_sn = obj_new('GlobalPropertyDisplay', controller)
@@ -70,13 +69,13 @@ num_rows = 3
 
 ; Create the three plots
 smooth_v_sn->display, eevt, vals, eevt_ids, 'sn_tot_norm2', 'sm_ness_all2', $
-  row_index = ++row_index, num_rows = num_rows, window_settings = window_settings
+  row_index = ++row_index, num_rows = num_rows
 
 alt_v_sn->display, eevt, vals, eevt_ids, 'sn_tot_norm2', 'alt', $
-  row_index = ++row_index, num_rows = num_rows, window_settings = window_settings
+  row_index = ++row_index, num_rows = num_rows
 
 alt_v_smooth->display, eevt, vals, eevt_ids, 'sm_ness_all2', 'alt', $
-  row_index = ++row_index, num_rows = num_rows, window_settings = window_settings
+  row_index = ++row_index, num_rows = num_rows
 
 ; Tell the event handler about all the plots so it can interact with them.
 handler->add_plot, smooth_v_sn

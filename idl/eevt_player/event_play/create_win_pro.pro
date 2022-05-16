@@ -1,10 +1,8 @@
-function create_win_pro, win_index, title = title, $
-  window_settings = window_settings
+function create_win_pro, win_index, title = title
 
-  if not keyword_set(window_settings) then window_settings = obj_new('WindowSettings')
+  get_window_pos, win_index, x, y
 
-  get_window_pos, win_index, x, y, window_settings = window_settings
-
+  window_settings = obj_new('WindowSettings')
   xsize = window_settings.xsize()
   ysize = window_settings.ysize()
 

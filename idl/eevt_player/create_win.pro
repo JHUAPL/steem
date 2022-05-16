@@ -1,11 +1,10 @@
-function create_win, controller, win_index, title = title, handler = handler, $
-  window_settings = window_settings
+function create_win, controller, win_index, title = title, handler = handler
 
   if not keyword_set(handler) then return, !null
-  if not keyword_set(window_settings) then window_settings = obj_new('WindowSettings')
 
-  get_window_pos, win_index, x, y, window_settings = window_settings
+  get_window_pos, win_index, x, y
 
+  window_settings = obj_new('WindowSettings')
   xsize = window_settings.xsize()
   ysize = window_settings.ysize()
 
