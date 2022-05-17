@@ -55,7 +55,7 @@ handler = obj_new('AnalyzeEventsHandler', controller)
 ; window. The plots need to interact with that.
 win_index = 0
 title = string(FORMAT = "E.E. Events %d", win_index)
-win = create_win(controller, win_index, title = title, handler = handler)
+win = create_win(win_index, title = title, handler = handler)
 
 ; Create property display objects for each of the plots to be created below.
 smooth_v_sn = obj_new('GlobalPropertyDisplay', controller)

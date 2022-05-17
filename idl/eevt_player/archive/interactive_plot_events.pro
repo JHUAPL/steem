@@ -44,7 +44,7 @@ pro interactive_plot_events, eevt, vals
 
   title = string(FORMAT = "E.E. Events %d", win_index)
 
-  windows[win_index] = create_win(win_index, title = title
+  windows[win_index] = create_win(win_index, title = title)
 
   show_instructions
 

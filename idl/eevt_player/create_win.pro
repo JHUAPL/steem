@@ -1,4 +1,4 @@
-function create_win, controller, win_index, title = title, handler = handler
+function create_win, win_index, title = title, handler = handler
 
   if not keyword_set(handler) then return, !null
 
