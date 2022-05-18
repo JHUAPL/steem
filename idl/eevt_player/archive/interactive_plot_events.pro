@@ -44,7 +44,7 @@ pro interactive_plot_events, eevt, vals
 
   title = string(FORMAT = "E.E. Events %d", win_index)
 
-  windows[win_index] = create_win(win_index, title = title)
+  windows[win_index] = window_settings.create_win(title = title)
 
   show_instructions
 
@@ -260,7 +260,7 @@ pro interactive_plot_events, eevt, vals
       title = string(format = "E.E. Events %d", win_index)
 
       if windows[win_index] eq !null then begin
-        windows[win_index] = create_win(win_index, title = title)
+        windows[win_index] = window_settings.create_win(title = title)
       endif else begin
         windows[win_index].SetCurrent
       endelse
