@@ -3,7 +3,7 @@ function AnalyzeEventsHandler::init, controller
   self.plots = ptr_new()
   self.current_plot = ptr_new(/allocate)
 
-  return, self->GraphicsEventAdapter::init()
+  return, 1
 end
 
 function AnalyzeEventsHandler::MouseDown, window, x, y, button, keymods, clicks
