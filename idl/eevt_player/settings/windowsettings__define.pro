@@ -71,7 +71,22 @@ function WindowSettings::init, xsize = xsize, ysize = ysize, $
   self.switch_display = switch_display
   self.max_spec = max_spec
 
-  if prototype eq !null then prototype = self
+  if prototype eq !null then begin
+    ; Take actions here that need only be done the very first time
+    ; a window settings object is initialized
+    ; Do this or else the color bars are messed up.
+    device, decomposed = 0
+
+    ;    loadct, 13 ; Rainbow
+    ;  loadct, 32 ; Plasma -- nice contrasts but can't gauge intensity.
+    ;  loadct, 74 ; Spectral -- darker = more, not really good and background is red.
+
+    ; Standard procedural plot set-up.
+    ;    standard_plot
+
+    prototype = self
+  endif
+
 
   return, 1
 end
@@ -96,7 +111,94 @@ function WindowSettings::max_spec
   return, self.max_spec
 end
 
-; Make *this* intance of WindowSettings the new prototype. Future windows
+function WindowSettings::get_win_index
+  common WindowSettings, prototype
+
+  return, prototype.win_index
+end
+
+function WindowSettings::create_win, title = title, handler = handler
+
+  common WindowSettings, prototype
+
+  get_window_pos, prototype.win_index, x, y
+
+  xsize = self.xsize()
+  ysize = self.ysize()
+
+  w = window(location = [ x, y ], dimensions = [ xsize, ysize ], window_title = title)
+
+  if keyword_set(handler) then w.EVENT_HANDLER = handler
+
+  w.SetCurrent
+
+  ++prototype.win_index
+
+  return, w
+end
+
+pro WindowSettings::get_window_pos, win_index, x, y
+
+  xsize = self.xsize()
+  ysize = self.ysize()
+  switch_display = self.switch_display()
+
+  if switch_display then mon_index = 0 else mon_index = 1
+
+  oInfo = obj_new('IDLsysMonitorInfo')
+  num_mons = oInfo->GetNumberOfMonitors()
+  if mon_index lt 0 then mon_index = 0
+  if mon_index ge num_mons then mon_index = num_mons - 1
+
+  rects = oInfo->GetRectangles()
+
+  ; Get monitor characteristics.
+  x_min = rects[0, mon_index]
+  mon_width = rects[2, mon_index]
+  x_max = x_min + mon_width
+
+  y_min = rects[1, mon_index]
+  mon_height = rects[3, mon_index]
+  y_max = y_min + mon_height
+
+  ; Slim down requested plot size to fit the monitor if necessary.
+  if xsize gt mon_width then xsize = mon_width
+  if ysize gt mon_height then ysize = mon_height
+
+  ; Use menu bar thickness as a heuristic limit on sizes in order
+  ; to tile plots nicely.
+  menu_bar_thickness = 32
+
+  ; For purposes of wrapping window placements at the edges of monitor,
+  ; constrain coordinates to a range that guarantees about 1/4 of a window
+  ; will always be visible when first displayed.
+  wrap_width = mon_width - xsize / 2
+  wrap_height = mon_height - ysize / 2
+
+  ; Arbitrarily figure on stepping through about 17 plots (a prime)
+  ; before wrapping on the monitor.
+  delta_x = wrap_width / 17
+  delta_y = wrap_height / 17
+
+  ; Ensure the X-Y steps for each plot are at least the thickness of a
+  ; window's menu bar.
+  if delta_x lt 32 then delta_x = menu_bar_thickness
+  if delta_y lt 32 then delta_y = menu_bar_thickness
+
+  ; Determine offsets for placing this plot.
+  x_offset = 1 + win_index * delta_x mod wrap_width
+  y_offset = 1 + win_index * delta_y mod wrap_height
+
+  ; X and Y are measured from lower-left, but plots start at
+  ; upper-left and march down the diagonal to lower-right.
+  x = x_min + x_offset
+  y = y_max - ysize - y_offset
+
+  obj_destroy, oInfo
+
+end
+
+; Make *this* instance of WindowSettings the new prototype. Future windows
 ; settings (and windows) will be initialized to the same state as this
 ; instance.
 pro WindowSettings::set_prototype
@@ -110,7 +212,7 @@ pro WindowSettings::show
 
   common WindowSettings, prototype
 
-  format = 'xsize = %d, ysize = %d, switch_display = %s, max_spec = %d'
+  format = 'xsize = %d, ysize = %d, switch_display = %s, max_spec = %d, win_index = %d'
 
   is_prototype = self.xsize eq prototype.xsize and $
     self.ysize eq prototype.ysize and $
@@ -122,10 +224,10 @@ pro WindowSettings::show
 
   if self.switch_display then switch_string = 'true' else switch_string = 'false'
 
-  print, format = format, self.xsize, self.ysize, switch_string, self.max_spec
+  print, format = format, self.xsize, self.ysize, switch_string, self.max_spec, prototype.win_index
 
 end
 
 pro WindowSettings__define
-  !null = { WindowSettings, xsize:-1, ysize:-1, max_spec:-1, switch_display:!false }
+  !null = { WindowSettings, xsize:-1, ysize:-1, max_spec:-1, switch_display:!false, win_index:0 }
 end
