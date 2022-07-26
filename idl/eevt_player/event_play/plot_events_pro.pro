@@ -259,7 +259,7 @@ pro plot_events_pro, eevt, vals, eevt_ids, zrange = zrange
 
         this_diff_spec = diff_spec[i, *]
         diff_spec_for_fit = this_diff_spec
-        make_positive_for_fit = !true
+        make_positive_for_fit = !false
         if make_positive_for_fit then begin
           ; Not sure about this: is it really needed, does it really help the fits?
           max_value = max(this_diff_spec[ind_low:ind_high], /nan, min=min_value)
@@ -270,6 +270,17 @@ pro plot_events_pro, eevt, vals, eevt_ids, zrange = zrange
           diff_spec_for_fit[ind_low:ind_high], yfit=yfit)
 
         param_valid = n_elements(param) eq 2
+
+        exp_fac = this_eevt[i].eevt.exp_fac
+        if param_valid then begin
+          if this_eevt[i].eevt.exp_fac ne param[1] then begin
+            print, 'Discrepancy in fit spectral index: ', this_eevt[i].eevt.exp_fac, ' ne ', param[1]
+          endif
+        endif else begin
+          if this_eevt[i].eevt.exp_fac ne !values.d_nan then begin
+            print, 'Discrepancy in fit spectral index: ', this_eevt[i].eevt.exp_fac, ' ne nan'
+          endif
+        endelse
 
         if param_valid then param_label = String(format = ' SI = %0.2f', param[1]) else param_label = ''
 
@@ -306,7 +317,7 @@ pro plot_events_pro, eevt, vals, eevt_ids, zrange = zrange
             thick = 5, position = pos
         endelse
 
-        if n_elements(param) eq 2 then begin
+        if param_valid then begin
           oplot, chan_index, param[0] * exp(chan_index / param[1]), thick = 5, color = accent_color
           this_eevt[i].eevt.exp_fac = param[1]
         endif

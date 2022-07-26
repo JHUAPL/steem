@@ -30,6 +30,8 @@ select, eevt, vals, eevt_ids $
   , uls = dictionary( 'parameter' , value $
   )
 
+fit_spectra, eevt, vals, eevt_ids
+
 ; Uncomment one of these to get the right settings for your monitor. If plots
 ; are appearing on the wrong monitor, add or toggle the parameter
 ; switch_display = !true and it should swap which monitor it uses. max_spec
