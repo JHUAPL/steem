@@ -70,7 +70,7 @@ function PlotEventsHandler::MouseDown, window, x, y, button, keymods, clicks
       plots[i]->clear_selections
     endfor
 
-    ; Return 0  here to disable the default handler from getting called.
+    ; Return 0 here to disable the default handler from getting called.
     ; This pops up an annoying properties window.
     return, 0
   endif
