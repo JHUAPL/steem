@@ -37,20 +37,23 @@ pro PlotEventsController::show_plots, eevt_id = eevt_id
   handler = *self.handler
   window_settings = *self.window_settings
 
+  if not keyword_set(eevt_id) then eevt_id = eevt_ids[0]
+
+  event_index = where(eevt_ids eq eevt_id)
+  if event_index[0] eq -1 then return
+  event_index = event_index[0]
+
+  eevt_id = String(format = '%d', eevt_ids[event_index])
+  title = 'Event ' + eevt_id
+
   if not self.plot_window_defined then begin
-    self.plot_window = ptr_new(window_settings.create_win(handler = handler))
+    self.plot_window = ptr_new(window_settings.create_win(handler = handler, title = 'Event Detail'))
     self.plot_window_defined = !true
   endif
 
   plot_window = *self.plot_window
 
-  if not keyword_set(eevt_id) then eevt_id = eevt_ids[0]
-
-  plot_window.SetCurrent
-
-  event_index = where(eevt_ids eq eevt_id)
-
-  if event_index[0] eq -1 then return
+  plot_window.refresh, /disable
 
   xsize = window_settings.xsize()
   ysize = window_settings.ysize()
@@ -88,8 +91,6 @@ pro PlotEventsController::show_plots, eevt_id = eevt_id
   xformat = [ 'label_date' ]
   xtickunits = [ 'Minutes' ]
 
-  title = string(FORMAT = "E.E. Events %d", window_settings.get_win_index())
-
   this_eevt = eevt[event_index, *]
   eevt_len = this_eevt[0].eevt.evt_length
 
@@ -118,7 +119,6 @@ pro PlotEventsController::show_plots, eevt_id = eevt_id
   alt = this_eevt[0:eevt_len - 1].eph.alt
   alt_range = [ min(alt), max(alt) ]
 
-  eevt_id = String(format = '%d', eevt_ids[event_index])
   eevt_date = format_jday(jday[0])
 
   ; Smoothness selection: smooth or bursty
@@ -136,19 +136,22 @@ pro PlotEventsController::show_plots, eevt_id = eevt_id
 
   spec_log = !true
 
-  ; Color bars are built-in for OO spectrograms.
-  lines_for_spec = 1
-  lines_for_diff_spec = 1
+  ; Color bars are built-in for OO spectrograms. The size of the main plot seems correct,
+  ; but the color bar labels tend to run into the next plot. This bit of trickery is
+  ; to try to get the color bars to stay in-bounds.
+  lines_for_title = 0.1
+  lines_for_spec = 1.15
+  lines_for_diff_spec = 1.15
   lines_for_lc = 1
 
-  imax = spec_per_step + lines_for_spec + lines_for_diff_spec + lines_for_lc
+  imax = spec_per_step + 2.0 * lines_for_title + lines_for_spec + lines_for_diff_spec + lines_for_lc
   jmax = 2
 
   spec0_index = 0
   num_steps = eevt_len - spec_per_step
 
-  row_index = 0
-  cb_height = 1.0
+  row_index = lines_for_title
+  ;  cb_height = 1.0
 
   panel0 = 0
   panel1 = 1
@@ -163,17 +166,25 @@ pro PlotEventsController::show_plots, eevt_id = eevt_id
   ;    ++row_index
 
   ; Set jmax = 1 (not jmax) so the plot will fill the window horizontally.
-  pos = plot_coord(row_index, panel0, imax, 1, height = 2.0 - cb_height, margins = margins)
+  pos = plot_coord(row_index, panel0, imax, 1, margins = margins)
+
+  yDummy = make_array(1, /float)
+
+  !null = plot(yDummy, /current, title = title, axis_style = 0, position = pos)
+
+  row_index += lines_for_title
+
+  pos = plot_coord(row_index, panel0, imax, 1, margins = margins)
 
   xrange = jday_range
   yrange = chan_range
 
-  !null = plot_spectrogram(spec_to_plot, jday[0:eevt_len - 1], chan_index, $
+  p = plot_spectrogram(spec_to_plot, jday[0:eevt_len - 1], chan_index, $
     xrange = xrange, yrange = yrange, $
     xtickformat = xformat, xtickunits = xtickunits, $
     position = pos)
 
-  ++row_index
+  row_index += lines_for_spec
 
   ; Set jmax = 1 (not jmax) so the plot will fill the window horizontally.
   ;    pos = plot_coord(row_index - cb_height, panel0, imax, 1, height = cb_height, margins = margins)
@@ -185,7 +196,7 @@ pro PlotEventsController::show_plots, eevt_id = eevt_id
   ;    ++row_index
 
   ; Set jmax = 1 (not jmax) so the plot will fill the window horizontally.
-  pos = plot_coord(row_index, panel0, imax, 1, height = 2.0 - cb_height, margins = margins)
+  pos = plot_coord(row_index, panel0, imax, 1, margins = margins)
 
   xrange = jday_range
   yrange = chan_range
@@ -196,40 +207,42 @@ pro PlotEventsController::show_plots, eevt_id = eevt_id
     ;      xtitle = '', $
     position = pos)
 
-  ++row_index
+  row_index += lines_for_diff_spec
 
   specN_index = spec0_index + spec_per_step - 1
 
   ; Set jmax = 1 (not jmax) so the plot will fill the window horizontally.
-  pos = plot_coord(row_index, panel0, imax, 1, margins = margins)
+  pos = plot_coord(row_index, panel0, imax, 1, margins= margins)
 
   ; Plot the altitude with axis on the right overtop the light curve.
   yrange = alt_range
-  !null = plot(jday, alt, /current, title = '', $
+  p = plot(jday, alt, /current, title = '', axis_style = 0, $
     xrange = xrange, xstyle = exact, yrange = yrange, $
     xtickformat = xformat, xtickunits = xtickunits, thick = 2, $
     symbol = diamond, sym_size = 1, $
     color = accent_color2, $
     position = pos)
 
-  ;    axis, yaxis = 1, ytitle = 'Altitude', color = accent_color2
+  !null = axis('Y', location='right', title = 'Altitude', color = accent_color2, $
+    target = p)
 
   xrange = jday_range
   yrange = bp_low_range
 
   ; Plot the 'light curve' for this event.
-  !null = plot(jday, bp_low, /current, title = 'Event ' + eevt_id, $
+  p = plot(jday, bp_low, /current, title = '', $
     xrange = xrange, xstyle = exact, yrange = yrange, $
     xtickformat = xformat, xtickunits = xtickunits, thick = 2, $
+    ytitle = 'BP low', ycolor = fg_color, $
     symbol = diamond, sym_size = 1, $
     color = fg_color, $
     position = pos)
 
-  ;    axis, yaxis = 0, ytitle = 'BP low', color = fg_color
-
   ; Highlight the points whose spectra will be shown.
-  ;    plots, jday[spec0_index:specN_index], bp_low[spec0_index:specN_index], $
-  ;      psym = square, symsize = 4, color = accent_color
+  !null = plot(jday[spec0_index:specN_index], bp_low[spec0_index:specN_index], /current, axis_style = 0, $
+    xrange = xrange, xstyle = exact, yrange = yrange, $
+    symbol = square, sym_size = 1.2, sym_thick = 2, color = accent_color, linestyle = 'non', $
+    position = pos)
 
   ++row_index
 
@@ -258,7 +271,7 @@ pro PlotEventsController::show_plots, eevt_id = eevt_id
 
       this_diff_spec = diff_spec[i, *]
       diff_spec_for_fit = this_diff_spec
-      make_positive_for_fit = !true
+      make_positive_for_fit = !false
       if make_positive_for_fit then begin
         ; Not sure about this: is it really needed, does it really help the fits?
         max_value = max(this_diff_spec[ind_low:ind_high], /nan, min=min_value)
@@ -291,30 +304,45 @@ pro PlotEventsController::show_plots, eevt_id = eevt_id
       if i eq spec0_index then title = 'Diff spec, ' + title
       if i eq specN_index then xtitle = 'Channel' else xtitle = ''
 
+      ; Store fit result in the appropriate event field
+      if n_elements(param) eq 2 then begin
+        this_eevt[i].eevt.exp_fac = param[1]
+      endif
+
       if spec_log then begin
         !null = plot(chan_index, this_diff_spec, /current, title = title, $
           xtitle = xtitle, ytitle = 'Counts per second', /ylog, $
           xrange = xrange, xstyle = exact, yrange = yrange, ystyle = exact, $
           color = fg_color, $
           thick = 5, position = pos)
+        if n_elements(param) eq 2 then begin
+          !null = plot(chan_index, param[0] * exp(chan_index / param[1]), /current, axis_style = 0, /ylog, $
+            xrange = xrange, xstyle = exact, yrange = yrange, ystyle = exact, $
+            color = accent_color, $
+            thick = 5, position = pos)
+        endif
       endif else begin
         !null = plot(chan_index, this_diff_spec, /current, title = title, $
           xtitle = xtitle, ytitle = 'Counts per second', $
           xrange = xrange, xstyle = exact, yrange = yrange, ystyle = exact, $
           color = fg_color, $
           thick = 5, position = pos)
+        if n_elements(param) eq 2 then begin
+          !null = plot(chan_index, param[0] * exp(chan_index / param[1]), /current, axis_style = 0, $
+            xrange = xrange, xstyle = exact, yrange = yrange, ystyle = exact, $
+            color = accent_color, $
+            thick = 5, position = pos)
+        endif
       endelse
-
-      ;      if n_elements(param) eq 2 then begin
-      ;        oplot, chan_index, param[0] * exp(chan_index / param[1]), thick = 5, color = accent_color
-      ;        this_eevt[i].eevt.exp_fac = param[1]
-      ;      endif
 
       ++row_index
 
     endfor
 
   endif
+
+  plot_window.refresh
+  plot_window.SetCurrent
 
 end
 
