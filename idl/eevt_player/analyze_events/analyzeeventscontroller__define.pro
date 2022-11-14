@@ -8,10 +8,17 @@
 ;   vals ancillary data structure containing 1 array
 ;   eevt_ids 1-d array of integer event identifiers
 ;
-function AnalyzeEventsController::init, eevt, vals, eevt_ids
+function AnalyzeEventsController::init, eevt, vals, eevt_ids, $
+  window_settings = window_settings
+
   self.eevt = ptr_new(eevt)
   self.vals = ptr_new(vals)
   self.eevt_ids = ptr_new(eevt_ids)
+
+  if not keyword_set(window_settings) then $
+    window_settings = ptr_new(obj_new('WindowSettings'))
+
+  self.window_settings = window_settings
 
   return, 1
 end
@@ -29,6 +36,7 @@ pro AnalyzeEventsController::show_spectra, selected_ids
   eevt = *self.eevt
   vals = *self.vals
   eevt_ids = *self.eevt_ids
+  window_settings = *self.window_settings
 
   ; Create a list of indices filtered based on the events matching the specified selection.
   indices = where(eevt_ids eq selected_ids[0])
@@ -45,8 +53,13 @@ pro AnalyzeEventsController::show_spectra, selected_ids
   ;zmax = max(eevt.eevt.bp_low_spec, /nan, min = zmin)
   ;zrange = [ zmin, zmax ]
 
-  plot_events_pro, eevt, vals, eevt_ids, zrange = zrange
+  ; plot_events_pro, eevt, vals, eevt_ids, zrange = zrange
+  controller = obj_new('PlotEventsController', eevt, vals, eevt_ids, $
+    window_settings = ptr_new(window_settings))
 
+  handler = obj_new('PlotEventsHandler', controller)
+
+  controller->show_plots
 end
 
 ; Controller class definition.
@@ -56,6 +69,7 @@ pro AnalyzeEventsController__define
     AnalyzeEventsController, $
     eevt:ptr_new(), $
     vals:ptr_new(), $
-    eevt_ids:ptr_new() $
+    eevt_ids:ptr_new(), $
+    window_settings:ptr_new() $
   }
 end

@@ -1,6 +1,6 @@
 ; Run file for the interactive event analysis tool. This one plots events against 3
 ; global properties on scatter plots. The user may select one or more events by
-; clicking on them (hold down space for more than one). Then type the 's" key
+; clicking on them (hold down space for more than one). Then type the "s" key
 ; (spectrogram) to spawn the event_play tool where you can drill down into spectra
 ; for those events. This one is partly OO in design.
 
@@ -48,15 +48,16 @@ window_settings = obj_new('WindowSettings', ysize = 2138* 14 / 15, max_spec = 5)
 
 ; This is a work in progress -- eventually this will be the heart of how
 ; all the plots are managed and talk to each other. For now, just need it here.
-controller = obj_new('AnalyzeEventsController', eevt, vals, eevt_ids)
+controller = obj_new('AnalyzeEventsController', eevt, vals, eevt_ids, $
+  window_settings = ptr_new(window_settings) $
+  )
 
 handler = obj_new('AnalyzeEventsHandler', controller)
 
 ; Make a new window in which to show the events for this analysis. This has
 ; an output keyword handler -- that is the object that handles events in the
 ; window. The plots need to interact with that.
-win_index = 0
-title = string(FORMAT = "E.E. Events %d", win_index)
+title = 'E.E. Events'
 win = window_settings.create_win(title = title, handler = handler)
 
 ; Create property display objects for each of the plots to be created below.
