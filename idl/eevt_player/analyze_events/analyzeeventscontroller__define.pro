@@ -57,8 +57,6 @@ pro AnalyzeEventsController::show_spectra, selected_ids
   controller = obj_new('PlotEventsController', eevt, vals, eevt_ids, $
     window_settings = ptr_new(window_settings))
 
-  handler = obj_new('PlotEventsHandler', controller)
-
   controller->show_plots
 end
 
