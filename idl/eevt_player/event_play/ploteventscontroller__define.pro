@@ -26,6 +26,8 @@ function PlotEventsController::init, eevt, vals, eevt_ids, $
   self.plot_window_defined = !false
   self.plot_window = ptr_new()
 
+  self.new_plot_window = ptr_new(obj_new('PlotEventsWindow', self, window_settings = window_settings))
+
   return, 1
 end
 
@@ -36,6 +38,7 @@ pro PlotEventsController::show_plots, eevt_id = eevt_id
   eevt_ids = *self.eevt_ids
   handler = *self.handler
   window_settings = *self.window_settings
+  new_plot_window = *self.new_plot_window
 
   if not keyword_set(eevt_id) then eevt_id = eevt_ids[0]
 
@@ -45,6 +48,15 @@ pro PlotEventsController::show_plots, eevt_id = eevt_id
 
   eevt_id = String(format = '%d', eevt_ids[event_index])
   title = 'Event ' + eevt_id
+
+  this_eevt = eevt[event_index, *]
+
+  new_plot_window.set_event, this_eevt
+;  new_plot_window.set_title, title
+  new_plot_window.update
+
+  ; TODO clean up here: comment this out to create plots the old way as well as the "new" way.
+  return
 
   if not self.plot_window_defined then begin
     self.plot_window = ptr_new(window_settings.create_win(handler = handler, title = 'Event Detail'))
@@ -357,6 +369,7 @@ pro PlotEventsController__define
     handler:ptr_new(), $
     window_settings:ptr_new(), $
     plot_window_defined:!false, $
-    plot_window:ptr_new() $
+    plot_window:ptr_new(), $
+    new_plot_window:ptr_new() $
   }
 end
