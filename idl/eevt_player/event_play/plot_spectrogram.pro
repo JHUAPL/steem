@@ -4,11 +4,13 @@ function plot_spectrogram, z, x, y, $
   xtickunits = xtickunits, $
   title = title, $
   ncolors = ncolors, $
-  position = position, $
+  nodata = nodata, $
   suppress_color_bar = suppress_color_bar, $
+  position = position, $
   window = window
 
   if not keyword_set(ncolors) then ncolors = !d.table_size
+  if not keyword_set(nodata) then nodata = !false
   if not keyword_set(suppress_color_bar) then suppress_color_bar = !false
 
   xx = x
@@ -34,14 +36,24 @@ function plot_spectrogram, z, x, y, $
 
   ct = colortable(13, ncolors = ncolors, /transpose)
 
-  c = contour(zz, xx, yy, /fill, /current, $
-    xrange = xrange, yrange = yrange, $
-    position = position, $
+  if nodata then $
+    c = contour(zz, xx, yy, /fill, /current, /nodata, $
     c_color = ct, n_levels = ncolors, $
     xtickformat = xtickformat, xtickunits = xtickunits, $
     title = title, xmajor = 3, $
+    position = position, $
+    window = window $
+    ) $
+  else $
+    c = contour(zz, xx, yy, /fill, /current, $
+    xrange = xrange, yrange = yrange, $
+    c_color = ct, n_levels = ncolors, $
+    xtickformat = xtickformat, xtickunits = xtickunits, $
+    title = title, xmajor = 3, $
+    position = position, $
     window = window $
     )
+
 
   if not suppress_color_bar then begin
     !null = colorbar(target = c, title = 'counts per second', major = 5)
