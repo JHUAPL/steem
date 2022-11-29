@@ -48,15 +48,19 @@ function PlotEventsWindow::init, controller, window_settings = window_settings
   title_plot = plot(dummy_array1d, /current, title = 'Event N', axis_style = 0, window = plot_window)
 
   spectrogram = plot_spectrogram(dummy_array2d, dummy_array1d, dummy_array1d, $
-    xtickformat = time_format, xtickunits = time_units, suppress_color_bar = !true, $
+    xtickformat = time_format, xtickunits = time_units, $
+    nodata = !true, $
+    suppress_color_bar = !true, $
     window = plot_window)
 
   diff_spect = plot_spectrogram(dummy_array2d, dummy_array1d, dummy_array1d, $
-    xtickformat = time_format, xtickunits = time_units, suppress_color_bar = !true, $
+    xtickformat = time_format, xtickunits = time_units, $
+    nodata = !true, $
+    suppress_color_bar = !true, $
     window = plot_window)
 
   ; The altitude will be plotted with axis on the right overtop the light curve.
-  altitude = plot(dummy_array1d, dummy_array1d, /current, axis_style = 0, $
+  altitude = plot(dummy_array1d, dummy_array1d, /current, axis_style = 4, $
     xstyle = exact, ystyle = exact, $
     xtickformat = time_format, xtickunits = time_units, thick = 2, $
     symbol = diamond, sym_size = 1, $
@@ -67,6 +71,7 @@ function PlotEventsWindow::init, controller, window_settings = window_settings
     target = altitude)
 
   light_curve = plot(dummy_array1d, dummy_array1d, /current, $
+    axis_style = 1, $
     xstyle = exact, ystyle = exact, $
     xtickformat = time_format, xtickunits = time_units, thick = 2, $
     ytitle = 'BP low', ycolor = fg_color, $
