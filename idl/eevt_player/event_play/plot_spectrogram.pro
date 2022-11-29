@@ -4,9 +4,12 @@ function plot_spectrogram, z, x, y, $
   xtickunits = xtickunits, $
   title = title, $
   ncolors = ncolors, $
-  position = position
+  position = position, $
+  suppress_color_bar = suppress_color_bar, $
+  window = window
 
   if not keyword_set(ncolors) then ncolors = !d.table_size
+  if not keyword_set(suppress_color_bar) then suppress_color_bar = !false
 
   xx = x
   yy = y
@@ -36,10 +39,13 @@ function plot_spectrogram, z, x, y, $
     position = position, $
     c_color = ct, n_levels = ncolors, $
     xtickformat = xtickformat, xtickunits = xtickunits, $
-    title = title, xmajor = 3 $
+    title = title, xmajor = 3, $
+    window = window $
     )
 
-  cb = colorbar(target = c, title = 'counts per second', major = 5)
+  if not suppress_color_bar then begin
+    !null = colorbar(target = c, title = 'counts per second', major = 5)
+  endif
 
   return, c
 
