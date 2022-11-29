@@ -19,10 +19,6 @@ function PlotEventsWindow::init, controller, window_settings = window_settings
 
   plot_window.refresh, /disable
 
-  ; hide = 1
-  ;  show = 0
-  ;  plot_window.hide = hide
-
   ; Dummy arrays used to create plots before any events are available to plot.
   dummy_array1d = make_array(2, /float)
   dummy_array2d = make_array(2, 2, /float)
@@ -45,19 +41,58 @@ function PlotEventsWindow::init, controller, window_settings = window_settings
 
   max_spec = ws.max_spec()
 
-  title_plot = plot(dummy_array1d, /current, title = 'Event N', axis_style = 0, window = plot_window)
+  xsize = ws.xsize()
+  ysize = ws.ysize()
 
+  xunit = 9.0 / xsize
+  yunit = 8.0 / ysize
+  margins = [ 8.0 * xunit, 8.0 * xunit, 2.0 * yunit, 8.0 * yunit ]
+
+  max_spec = ws.max_spec()
+
+  ; Color bars are built-in for OO spectrograms. The size of the main plot seems correct,
+  ; but the color bar labels tend to run into the next plot. This bit of trickery is
+  ; to try to get the color bars to display cleanly without running into anything.
+  lines_for_title = 0.1
+  lines_for_spec = 1.15
+  lines_for_diff_spec = 1.15
+  lines_for_lc = 1
+
+  ; Initial vertical row position is just below the window title.
+  row_index = lines_for_title
+  imax = max_spec + 2.0 * lines_for_title + lines_for_spec + lines_for_diff_spec + lines_for_lc
+  jmax = 2
+
+  panel0 = 0
+  panel1 = 1
+
+  ; Call with jmax parameter = 1 (not jmax variable defined above) for plots that
+  ; fill the window horizontally.
+  pos = plot_coord(row_index, panel0, imax, 1, margins = margins)
+  title_plot = plot(dummy_array1d, /current, /nodata, title = 'Event N', axis_style = 0, $
+    position = pos, $
+    window = plot_window)
+  row_index += lines_for_title
+
+  pos = plot_coord(row_index, panel0, imax, 1, margins = margins)
   spectrogram = plot_spectrogram(dummy_array2d, dummy_array1d, dummy_array1d, $
     xtickformat = time_format, xtickunits = time_units, $
     nodata = !true, $
     suppress_color_bar = !true, $
+    position = pos, $
     window = plot_window)
+  row_index += lines_for_spec
 
+  pos = plot_coord(row_index, panel0, imax, 1, margins = margins)
   diff_spect = plot_spectrogram(dummy_array2d, dummy_array1d, dummy_array1d, $
     xtickformat = time_format, xtickunits = time_units, $
     nodata = !true, $
     suppress_color_bar = !true, $
+    position = pos, $
     window = plot_window)
+  row_index += lines_for_diff_spec
+
+  pos = plot_coord(row_index, panel0, imax, 1, margins = margins)
 
   ; The altitude will be plotted with axis on the right overtop the light curve.
   altitude = plot(dummy_array1d, dummy_array1d, /current, axis_style = 4, $
@@ -65,6 +100,7 @@ function PlotEventsWindow::init, controller, window_settings = window_settings
     xtickformat = time_format, xtickunits = time_units, thick = 2, $
     symbol = diamond, sym_size = 1, $
     color = accent_color2, $
+    position = pos, $
     window = plot_window)
 
   !null = axis('Y', location='right', title = 'Altitude', color = accent_color2, $
@@ -77,12 +113,16 @@ function PlotEventsWindow::init, controller, window_settings = window_settings
     ytitle = 'BP low', ycolor = fg_color, $
     symbol = diamond, sym_size = 1, $
     color = fg_color, $
+    position = pos, $
     window = plot_window)
 
   highlights = plot(dummy_array1d, dummy_array1d, /overplot, $
     xstyle = exact, ystyle = exact, $
     symbol = square, sym_size = 1.2, sym_thick = 2, color = accent_color1, linestyle = 'none', $
+    position = pos, $
     window = plot_window)
+
+  row_index += lines_for_lc
 
   spec_array = make_array(max_spec, /obj)
   back_spec_array = make_array(max_spec, /obj)
@@ -90,26 +130,37 @@ function PlotEventsWindow::init, controller, window_settings = window_settings
   fit_array = make_array(max_spec, /obj)
 
   for i = 0, max_spec - 1 do begin
+    pos = plot_coord(row_index, panel0, imax, jmax, right = 4.0 * xunit, margins = margins)
+
     spec_array[i] = plot(dummy_array1d, dummy_array1d, /current, /ylog, $
       ytitle = 'Counts per second', thick = 2, $
       xstyle = exact, ystyle = exact, $
       color = accent_color1, $
+      position = pos, $
       window = plot_window)
     back_spec_array[i] = plot(dummy_array1d, dummy_array1d, /overplot, /ylog, $
       thick = 2, $
       xstyle = exact, ystyle = exact, $
       color = fg_color, $
+      position = pos, $
       window = plot_window)
+
+    pos = plot_coord(row_index, panel1, imax, jmax, left = 4.0 * xunit, margins = margins)
+
     diff_spec_array[i] = plot(dummy_array1d, dummy_array1d, /current, /ylog, $
       ytitle = 'Counts per second', thick = 2, $
       xstyle = exact, ystyle = exact, $
       color = accent_color1, $
+      position = pos, $
       window = plot_window)
     fit_array[i] = plot(dummy_array1d, dummy_array1d, /overplot, /ylog, $
       thick = 2, $
       ;      xstyle = exact, ystyle = exact, $
       color = fg_color, $
+      position = pos, $
       window = plot_window)
+
+    ++row_index
   endfor
 
   self.window_settings = window_settings
@@ -130,8 +181,6 @@ function PlotEventsWindow::init, controller, window_settings = window_settings
 
   self.spec0_index = 0
   self.log = !true
-
-  self.layout
 
   return, 1
 end
@@ -156,77 +205,6 @@ end
 
 pro PlotEventsWindow::set_log, log
   self.log = log
-end
-
-pro PlotEventsWindow::layout
-  window_settings = *self.window_settings
-  title_plot = *self.title_plot
-  spectrogram = *self.spectrogram
-  diff_spect = *self.diff_spect
-  altitude = *self.altitude
-  light_curve = *self.light_curve
-  highlights = *self.highlights
-  spec_array = *self.spec_array
-  back_spec_array = *self.back_spec_array
-  diff_spec_array = *self.diff_spec_array
-  fit_array = *self.fit_array
-
-  xsize = window_settings.xsize()
-  ysize = window_settings.ysize()
-
-  xunit = 9.0 / xsize
-  yunit = 8.0 / ysize
-  margins = [ 8.0 * xunit, 8.0 * xunit, 2.0 * yunit, 8.0 * yunit ]
-
-  max_spec = window_settings.max_spec()
-
-  ; Color bars are built-in for OO spectrograms. The size of the main plot seems correct,
-  ; but the color bar labels tend to run into the next plot. This bit of trickery is
-  ; to try to get the color bars to display cleanly without running into anything.
-  lines_for_title = 0.1
-  lines_for_spec = 1.15
-  lines_for_diff_spec = 1.15
-  lines_for_lc = 1
-
-  ; Initial vertical row position is just below the window title.
-  row_index = lines_for_title
-  imax = max_spec + 2.0 * lines_for_title + lines_for_spec + lines_for_diff_spec + lines_for_lc
-  jmax = 2
-
-  panel0 = 0
-  panel1 = 1
-
-  ; Call with jmax parameter = 1 (not jmax variable defined above) for plots that
-  ; fill the window horizontally.
-  pos = plot_coord(row_index, panel0, imax, 1, margins = margins)
-  title_plot.position = pos
-  row_index += lines_for_title
-
-  pos = plot_coord(row_index, panel0, imax, 1, margins = margins)
-  spectrogram.position = pos
-  row_index += lines_for_spec
-
-  pos = plot_coord(row_index, panel0, imax, 1, margins = margins)
-  diff_spect.position = pos
-  row_index += lines_for_diff_spec
-
-  pos = plot_coord(row_index, panel0, imax, 1, margins= margins)
-  altitude.position = pos
-  light_curve.position = pos
-  highlights.position = pos
-  row_index += lines_for_lc
-
-  for i = 0, max_spec - 1 do begin
-    pos = plot_coord(row_index, panel0, imax, jmax, right = 4.0 * xunit, margins = margins)
-    spec_array[i].position  = pos
-    back_spec_array[i].position = pos
-
-    pos = plot_coord(row_index, panel1, imax, jmax, left = 4.0 * xunit, margins = margins)
-    diff_spec_array[i].position = pos
-    fit_array[i].position = pos
-
-    ++row_index
-  endfor
 end
 
 pro PlotEventsWindow::update
