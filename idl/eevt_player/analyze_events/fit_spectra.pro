@@ -35,18 +35,6 @@ pro fit_spectra, eevt, vals, eevt_ids, ind_low = ind_low, ind_high = ind_high
       param = exp_fit(chan_index[ind_low:ind_high], $
         diff_spec_for_fit[ind_low:ind_high], yfit=yfit)
 
-      orig_param = param
-
-      make_positive_for_fit = !false
-      if make_positive_for_fit then begin
-        ; Not sure about this: is it really needed, does it really help the fits?
-        max_value = max(this_diff_spec[ind_low:ind_high], /nan, min=min_value)
-        if min_value lt 0 then diff_spec_for_fit -= min_value - 1
-      endif
-
-      param = exp_fit(chan_index[ind_low:ind_high], $
-        diff_spec_for_fit[ind_low:ind_high], yfit=yfit)
-
       param_valid = n_elements(param) eq 2
 
       if param_valid then begin
