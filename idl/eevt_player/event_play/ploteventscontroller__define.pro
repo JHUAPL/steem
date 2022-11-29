@@ -52,7 +52,7 @@ pro PlotEventsController::show_plots, eevt_id = eevt_id
   this_eevt = eevt[event_index, *]
 
   new_plot_window.set_event, this_eevt
-;  new_plot_window.set_title, title
+  new_plot_window.set_title, title
   new_plot_window.update
 
   ; TODO clean up here: comment this out to create plots the old way as well as the "new" way.
