@@ -38,6 +38,7 @@ function PlotEventsWindow::init, controller, window_settings = window_settings
   accent_color2 = 'green'
 
   exact = 1
+  padded = 2
 
   max_spec = ws.max_spec()
 
@@ -96,7 +97,7 @@ function PlotEventsWindow::init, controller, window_settings = window_settings
 
   ; The altitude will be plotted with axis on the right overtop the light curve.
   altitude = plot(dummy_array1d, dummy_array1d, /current, axis_style = 4, $
-    xstyle = exact, ystyle = exact, $
+    xstyle = exact, ystyle = padded, $
     xtickformat = time_format, xtickunits = time_units, thick = 2, $
     symbol = diamond, sym_size = 1, $
     color = accent_color2, $
@@ -108,7 +109,7 @@ function PlotEventsWindow::init, controller, window_settings = window_settings
 
   light_curve = plot(dummy_array1d, dummy_array1d, /current, $
     axis_style = 1, $
-    xstyle = exact, ystyle = exact, $
+    xstyle = exact, ystyle = padded, $
     xtickformat = time_format, xtickunits = time_units, thick = 2, $
     ytitle = 'BP low', ycolor = fg_color, $
     symbol = diamond, sym_size = 1, $
@@ -117,7 +118,7 @@ function PlotEventsWindow::init, controller, window_settings = window_settings
     window = plot_window)
 
   highlights = plot(dummy_array1d, dummy_array1d, /overplot, $
-    xstyle = exact, ystyle = exact, $
+    xstyle = exact, ystyle = padded, $
     symbol = square, sym_size = 1.2, sym_thick = 2, color = accent_color1, linestyle = 'none', $
     position = pos, $
     window = plot_window)
@@ -155,9 +156,7 @@ function PlotEventsWindow::init, controller, window_settings = window_settings
       window = plot_window)
     fit_array[i] = plot(dummy_array1d, dummy_array1d, /overplot, /ylog, $
       thick = 2, $
-      ;      xstyle = exact, ystyle = exact, $
       color = fg_color, $
-      position = pos, $
       window = plot_window)
 
     ++row_index
@@ -326,19 +325,19 @@ pro PlotEventsWindow::update
   ;  diff_spect.zlog = log
 
   altitude.SetData, jday, alt
-  altitude.xrange = jday_range
-  altitude.yrange = alt_range
+;  altitude.xrange = jday_range
+;  altitude.yrange = alt_range
   ; Keep altitude linear even in log mode.
   ;  altitude.ylog = log
 
   light_curve.SetData, jday, bp_low
-  light_curve.xrange = jday_range
-  light_curve.yrange = bp_low_range
+;  light_curve.xrange = jday_range
+;  light_curve.yrange = bp_low_range
   light_curve.ylog = log
 
   highlights.SetData, jday[spec0_index:specN_index], bp_low[spec0_index:specN_index]
-  highlights.xrange = jday_range
-  highlights.yrange = bp_low_range
+;  highlights.xrange = jday_range
+;  highlights.yrange = bp_low_range
   highlights.ylog = log
 
   for i = spec0_index, specN_index do begin
@@ -353,7 +352,8 @@ pro PlotEventsWindow::update
     scale_fac = scale_factor[i]
     this_diff_spec = diff_spec[i, *]
 
-    spec_range = [ 0.1, max([this_back_spec, scale_fac * this_evt_spec]) ]
+    spec_min = min( [this_evt_spec, this_back_spec ], max = spec_max)
+    spec_range = [ spec_min, spec_max ]
 
     indices = where(this_diff_spec gt 0, /null)
     if log then begin
@@ -382,7 +382,7 @@ pro PlotEventsWindow::update
     back_spec_plot.ylog = log
 
     param = this_eevt[i].eevt.exp_fac
-    param_valid = param ne !values.d_nan
+    param_valid = finite(param)
     if param_valid then param_label = String(format = ' SI = %0.2f', param) else param_label = ''
 
     title = string(format = 'alt = %d', alt[i]) + param_label
@@ -397,12 +397,12 @@ pro PlotEventsWindow::update
     diff_spec_plot.xtitle = xtitle
     diff_spec_plot.ylog = log
 
-    threshold = 0.2
-    if param gt threshold then amp = diff_min $
-    else if param lt -threshold then amp = diff_max $
-    else amp = sqrt(abs(diff_min * diff_max))
-
     if param_valid then begin
+      threshold = 0.2
+      if param gt threshold then amp = diff_min $
+      else if param lt -threshold then amp = diff_max $
+      else amp = sqrt(abs(diff_min * diff_max))
+
       fit_plot.SetData, chan_index, amp * exp(chan_index / param)
       ;      fit_plot.xrange = chan_range
       ;      fit_plot.yrange = diff_spec_range
