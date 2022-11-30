@@ -232,50 +232,48 @@ pro PlotEventsWindow::update
   eevt_len = this_eevt[0].eevt.evt_length
 
   jday = this_eevt[0:eevt_len - 1].hk.jday
-  chan_index = findgen(64)
-  num_chans = size(chan_index)
+
+  num_chan = 64
+  chan_index = findgen(num_chan)
 
   ; Time step index where background spectrum is found in each event.
-  last_ind = 60
+  back_idx = 60
 
   ; Channel indices that determine the range for spectra to
   ; agree with the background spectrum. This is used to scale the spectra.
-  back_ind0 = 50
-  back_ind1 = 60
+  first_chan_idx = 50
+  last_chan_idx = 60
 
   bp_low_spec = transpose(this_eevt[0:eevt_len - 1].eevt.bp_low_spec);
-  this_back_spec = this_eevt[last_ind].eevt.bp_low_spec
+  this_back_spec = this_eevt[back_idx].eevt.bp_low_spec
 
-  scale_factor = make_array(eevt_len, /float)
-  spec = make_array(eevt_len, num_chans[1], /float)
-  diff_spec = make_array(eevt_len, num_chans[1], /float)
+  bp_diff_spec = make_array(eevt_len, num_chan, /float)
 
   for i = 0, eevt_len - 1 do begin
-    scale_factor[i] = total(this_back_spec[back_ind0:back_ind1])/total(bp_low_spec[i, back_ind0:back_ind1])
-    diff_spec[i, *] = scale_factor[i] * bp_low_spec[i, *] - this_back_spec
+    scale_factor = total(this_back_spec[first_chan_idx:last_chan_idx])/total(bp_low_spec[i, first_chan_idx:last_chan_idx])
+    bp_diff_spec[i, *] = scale_factor * bp_low_spec[i, *] - this_back_spec
   endfor
 
   alt = this_eevt[0:eevt_len - 1].eph.alt
   bp_low = this_eevt[0:eevt_len-1].eevt.bp_low
 
   jday_range = [ jday[0], jday[eevt_len - 1] ]
-  chan_range = [ chan_index[0], chan_index[num_chans[1] - 1] ]
+  chan_range = [ chan_index[0], chan_index[num_chan - 1] ]
 
-  alt_min = min(alt, max = alt_max)
-  alt_range = [ alt_min, alt_max ]
-
-  bp_min = min(bp_low, max = bp_max)
-  bp_low_range = [ bp_min, bp_max ]
+  ;  alt_min = min(alt, max = alt_max)
+  ;  alt_range = [ alt_min, alt_max ]
+  ;
+  ;  bp_min = min(bp_low, max = bp_max)
+  ;  bp_low_range = [ bp_min, bp_max ]
 
   max_spec = window_settings.max_spec()
 
   num_spec_to_show = min( [ max_spec, eevt_len - spec0_index ] )
   specN_index = spec0_index + num_spec_to_show - 1
 
-  if specN_index ge eevt_len then specN_index = eevt_len - 1
-
   title_plot.title = title
 
+  ; Get position of previous spectrogram. Then delete it and its axes.
   pos = spectrogram.position
 
   axes = spectrogram.axes
@@ -283,16 +281,17 @@ pro PlotEventsWindow::update
     axes[i].hide = hide
     axes[i].delete
   endfor
-
   spectrogram.hide = hide
   spectrogram.delete
 
+  ; Create new spectrogram plot, in same position as previous plot.
   spectrogram = plot_spectrogram(bp_low_spec, jday[0:eevt_len - 1], chan_index, $
     xrange = jday_range, yrange = chan_range, $
     xtickformat = time_format, xtickunits = time_units, $
     position = pos, $
     window = plot_window)
 
+  ; Get position of previous differential spectrogram. Then delete it and its axes.
   pos = diff_spect.position
 
   axes = diff_spect.axes
@@ -300,11 +299,11 @@ pro PlotEventsWindow::update
     axes[i].hide = hide
     axes[i].delete
   endfor
-
   diff_spect.hide = hide
   diff_spect.delete
 
-  diff_spect = plot_spectrogram(diff_spec, jday[0:eevt_len - 1], chan_index, $
+  ; Create new differential spectrogram plot, in same position as previous plot.
+  diff_spect = plot_spectrogram(bp_diff_spec, jday[0:eevt_len - 1], chan_index, $
     xrange = jday_range, yrange = chan_range, $
     xtickformat = time_format, xtickunits = time_units, $
     position = pos, $
@@ -317,27 +316,27 @@ pro PlotEventsWindow::update
   ;  spectrogram.yrange = chan_range
   ;  spectrogram.zrange = [ zmin, zmax ]
   ;  spectrogram.zlog = log
-  ;  zmin = min(diff_spec, max = zmax)
-  ;  diff_spect.SetData, diff_spec, jday[0:eevt_len - 1], chan_index
+  ;  zmin = min(bp_diff_spec, max = zmax)
+  ;  diff_spect.SetData, bp_diff_spec, jday[0:eevt_len - 1], chan_index
   ;  diff_spect.xrange = jday_range
   ;  diff_spect.yrange = chan_range
   ;  diff_spect.zrange = [ zmin, zmax ]
   ;  diff_spect.zlog = log
 
   altitude.SetData, jday, alt
-;  altitude.xrange = jday_range
-;  altitude.yrange = alt_range
+  ;  altitude.xrange = jday_range
+  ;  altitude.yrange = alt_range
   ; Keep altitude linear even in log mode.
   ;  altitude.ylog = log
 
   light_curve.SetData, jday, bp_low
-;  light_curve.xrange = jday_range
-;  light_curve.yrange = bp_low_range
+  ;  light_curve.xrange = jday_range
+  ;  light_curve.yrange = bp_low_range
   light_curve.ylog = log
 
   highlights.SetData, jday[spec0_index:specN_index], bp_low[spec0_index:specN_index]
-;  highlights.xrange = jday_range
-;  highlights.yrange = bp_low_range
+  ;  highlights.xrange = jday_range
+  ;  highlights.yrange = bp_low_range
   highlights.ylog = log
 
   for i = spec0_index, specN_index do begin
@@ -349,8 +348,7 @@ pro PlotEventsWindow::update
     fit_plot = fit_array[i_array]
 
     this_evt_spec = this_eevt[i].eevt.bp_low_spec
-    scale_fac = scale_factor[i]
-    this_diff_spec = diff_spec[i, *]
+    this_diff_spec = bp_diff_spec[i, *]
 
     spec_min = min( [this_evt_spec, this_back_spec ], max = spec_max)
     spec_range = [ spec_min, spec_max ]
@@ -370,10 +368,10 @@ pro PlotEventsWindow::update
     if i eq specN_index then xtitle = 'Channel' else xtitle = ''
 
     spec_plot.SetData, chan_index, this_evt_spec
-    spec_plot.xrange = chan_range
-    spec_plot.yrange = spec_range
     spec_plot.title = title
     spec_plot.xtitle = xtitle
+    spec_plot.xrange = chan_range
+    spec_plot.yrange = spec_range
     spec_plot.ylog = log
 
     back_spec_plot.SetData, chan_index, this_back_spec
@@ -381,9 +379,9 @@ pro PlotEventsWindow::update
     back_spec_plot.yrange = spec_range
     back_spec_plot.ylog = log
 
-    param = this_eevt[i].eevt.exp_fac
-    param_valid = finite(param)
-    if param_valid then param_label = String(format = ' SI = %0.2f', param) else param_label = ''
+    spectral_index = this_eevt[i].eevt.exp_fac
+    fit_valid = finite(spectral_index)
+    if fit_valid then param_label = String(format = ', SI = %0.2f', spectral_index) else param_label = ''
 
     title = string(format = 'alt = %d', alt[i]) + param_label
 
@@ -397,13 +395,13 @@ pro PlotEventsWindow::update
     diff_spec_plot.xtitle = xtitle
     diff_spec_plot.ylog = log
 
-    if param_valid then begin
+    if fit_valid then begin
       threshold = 0.2
-      if param gt threshold then amp = diff_min $
-      else if param lt -threshold then amp = diff_max $
+      if spectral_index gt threshold then amp = diff_min $
+      else if spectral_index lt -threshold then amp = diff_max $
       else amp = sqrt(abs(diff_min * diff_max))
 
-      fit_plot.SetData, chan_index, amp * exp(chan_index / param)
+      fit_plot.SetData, chan_index, amp * exp(chan_index / spectral_index)
       ;      fit_plot.xrange = chan_range
       ;      fit_plot.yrange = diff_spec_range
       fit_plot.ylog = log
