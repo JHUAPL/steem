@@ -56,7 +56,7 @@ function plot_spectrogram, z, x, y, $
 
 
   if not suppress_color_bar then begin
-    !null = colorbar(target = c, title = 'counts per second', major = 5)
+    !null = colorbar(target = c, title = 'counts per second', major = 5, tickformat = '(f5.2)')
   endif
 
   return, c
