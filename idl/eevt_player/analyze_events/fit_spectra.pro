@@ -1,49 +1,50 @@
-pro fit_spectra, eevt, vals, eevt_ids, ind_low = ind_low, ind_high = ind_high
+function fit_spectra, eevt, vals, eevt_ids, first_fit_chan = first_fit_chan, last_fit_chan = last_fit_chan
 
   ; Channel indices that determine the range for fitting.
-  if not keyword_set(ind_low) then ind_low = 7
-  if not keyword_set(ind_high) then ind_high = 20
+  if not keyword_set(first_fit_chan) then first_fit_chan = 7
+  if not keyword_set(last_fit_chan) then last_fit_chan = 20
+
+  num_chan = 64
+  chan_index = findgen(num_chan)
 
   ; Time step index where background spectrum is found in each event.
-  last_ind = 60
+  back_spec_idx = 60
 
   ; Channel indices that determine the range for spectra to
   ; agree with the background spectrum. This is used to scale the spectra.
-  back_ind0 = 50
-  back_ind1 = 60
+  first_back_chan = 50
+  last_back_chan = 60
 
-  chan_index = findgen(64)
-  num_chans = size(chan_index)
+  num_events = n_elements(eevt_ids)
+  fit_param = ptrarr(num_events)
+  for i = 0, num_events - 1 do begin
+    eevt_len = eevt[i, 0].eevt.evt_length
 
-  for eevt_id = 0, n_elements(eevt_ids) - 1 do begin
-    eevt_len = eevt[eevt_id, 0].eevt.evt_length
+    bp_low_spec = eevt[i, 0:(eevt_len - 1)].eevt.bp_low_spec
 
-    bp_low_spec = eevt[eevt_id, 0:(eevt_len - 1)].eevt.bp_low_spec;
+    this_back_spec = eevt[i, back_spec_idx].eevt.bp_low_spec
 
-    this_back_spec = eevt[eevt_id, last_ind].eevt.bp_low_spec
+    diff_spec = make_array(eevt_len, num_chan, /float)
 
-    scale_factor = make_array(eevt_len, /float)
-    diff_spec = make_array(eevt_len, num_chans[1], /float)
+    this_fit = make_array(eevt_len, 2, /float)
 
-    for i = 0, eevt_len - 1 do begin
-      scale_factor[i] = total(this_back_spec[back_ind0:back_ind1])/total(bp_low_spec[back_ind0:back_ind1, 0, i])
-      diff_spec[i, *] = scale_factor[i] * bp_low_spec[*, 0, i] - this_back_spec
+    for j = 0, eevt_len - 1 do begin
+      scale_factor = total(bp_low_spec[first_back_chan:last_back_chan, 0, j])/total(this_back_spec[first_back_chan:last_back_chan])
+      diff_spec[j, *] = bp_low_spec[*, 0, j] - scale_factor * this_back_spec
 
-      this_diff_spec = diff_spec[i, *]
-      diff_spec_for_fit = this_diff_spec
+      this_diff_spec = diff_spec[j, *]
 
-      param = exp_fit(chan_index[ind_low:ind_high], $
-        diff_spec_for_fit[ind_low:ind_high], yfit=yfit)
+      param = exp_fit(chan_index[first_fit_chan:last_fit_chan], this_diff_spec[first_fit_chan:last_fit_chan], yfit=yfit)
 
-      param_valid = n_elements(param) eq 2
+      eevt[i, j].eevt.exp_fac = param[1]
 
-      if param_valid then begin
-        eevt[eevt_id, i].eevt.exp_fac = param[1]
-      endif else begin
-        eevt[eevt_id, i].eevt.exp_fac = !values.d_nan
-      endelse
-
+      this_fit[j, 0] = param[0]
+      this_fit[j, 1] = param[1]
     endfor
+
+    fit_param[i] = ptr_new(this_fit)
+
   endfor
 
+  return, fit_param
 end
