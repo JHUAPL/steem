@@ -7,13 +7,15 @@
 ;   eevt primary structure containing 3 arrays with event data
 ;   vals ancillary data structure containing 1 array
 ;   eevt_ids 1-d array of integer event identifiers
+;   fit_params 2-d array of fit parameters
 ;
-function AnalyzeEventsController::init, eevt, vals, eevt_ids, $
+function AnalyzeEventsController::init, eevt, vals, eevt_ids, fit_params, $
   window_settings = window_settings
 
   self.eevt = ptr_new(eevt)
   self.vals = ptr_new(vals)
   self.eevt_ids = ptr_new(eevt_ids)
+  self.fit_params = ptr_new(fit_params)
 
   if not keyword_set(window_settings) then $
     window_settings = ptr_new(obj_new('WindowSettings'))
@@ -36,6 +38,7 @@ pro AnalyzeEventsController::show_spectra, selected_ids
   eevt = *self.eevt
   vals = *self.vals
   eevt_ids = *self.eevt_ids
+  fit_params = *self.fit_params
   window_settings = *self.window_settings
 
   ; Create a list of indices filtered based on the events matching the specified selection.
@@ -49,12 +52,13 @@ pro AnalyzeEventsController::show_spectra, selected_ids
   eevt = eevt[indices, *]
   vals = vals[indices]
   eevt_ids = eevt_ids[indices]
+  fit_params = fit_params[indices]
 
   ;zmax = max(eevt.eevt.bp_low_spec, /nan, min = zmin)
   ;zrange = [ zmin, zmax ]
 
   ; plot_events_pro, eevt, vals, eevt_ids, zrange = zrange
-  controller = obj_new('PlotEventsController', eevt, vals, eevt_ids, $
+  controller = obj_new('PlotEventsController', eevt, vals, eevt_ids, fit_params, $
     window_settings = ptr_new(window_settings))
 
   controller->show_plots
@@ -68,6 +72,7 @@ pro AnalyzeEventsController__define
     eevt:ptr_new(), $
     vals:ptr_new(), $
     eevt_ids:ptr_new(), $
+    fit_params:ptr_new(), $
     window_settings:ptr_new() $
   }
 end
