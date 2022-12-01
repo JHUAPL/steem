@@ -9,13 +9,15 @@
 ;   eevt primary structure containing 3 arrays with event data
 ;   vals ancillary data structure containing 1 array
 ;   eevt_ids 1-d array of integer event identifiers
+;   fit_params 2-d array of fit parameters
 ;
-function PlotEventsController::init, eevt, vals, eevt_ids, $
+function PlotEventsController::init, eevt, vals, eevt_ids, fit_params, $
   window_settings = window_settings
 
   self.eevt = ptr_new(eevt)
   self.vals = ptr_new(vals)
   self.eevt_ids = ptr_new(eevt_ids)
+  self.fit_params = ptr_new(fit_params)
   self.handler = ptr_new(obj_new('PlotEventsHandler', self))
 
   if not keyword_set(window_settings) then $
@@ -36,6 +38,7 @@ pro PlotEventsController::show_plots, eevt_id = eevt_id
   eevt = *self.eevt
   vals = *self.vals
   eevt_ids = *self.eevt_ids
+  fit_params = *self.fit_params
   handler = *self.handler
   window_settings = *self.window_settings
   new_plot_window = *self.new_plot_window
@@ -50,8 +53,9 @@ pro PlotEventsController::show_plots, eevt_id = eevt_id
   title = 'Event ' + eevt_id
 
   this_eevt = eevt[event_index, *]
+  this_fit = *fit_params[event_index]
 
-  new_plot_window.set_event, this_eevt
+  new_plot_window.set_event, this_eevt, fit_param = this_fit
   new_plot_window.set_title, title
   new_plot_window.update
 
@@ -293,7 +297,7 @@ pro PlotEventsController::show_plots, eevt_id = eevt_id
       param = exp_fit(chan_index[ind_low:ind_high], $
         diff_spec_for_fit[ind_low:ind_high], yfit=yfit)
 
-      param_valid = n_elements(param) eq 2
+      param_valid = finite(param[0]) and finite(param[1])
 
       if param_valid then param_label = String(format = ' SI = %0.2f', param[1]) else param_label = ''
 
@@ -317,7 +321,7 @@ pro PlotEventsController::show_plots, eevt_id = eevt_id
       if i eq specN_index then xtitle = 'Channel' else xtitle = ''
 
       ; Store fit result in the appropriate event field
-      if n_elements(param) eq 2 then begin
+      if param_valid then begin
         this_eevt[i].eevt.exp_fac = param[1]
       endif
 
@@ -327,7 +331,7 @@ pro PlotEventsController::show_plots, eevt_id = eevt_id
           xrange = xrange, xstyle = exact, yrange = yrange, ystyle = exact, $
           color = fg_color, $
           thick = 5, position = pos)
-        if n_elements(param) eq 2 then begin
+        if param_valid then begin
           !null = plot(chan_index, param[0] * exp(chan_index / param[1]), /current, axis_style = 0, /ylog, $
             xrange = xrange, xstyle = exact, yrange = yrange, ystyle = exact, $
             color = accent_color, $
@@ -339,7 +343,7 @@ pro PlotEventsController::show_plots, eevt_id = eevt_id
           xrange = xrange, xstyle = exact, yrange = yrange, ystyle = exact, $
           color = fg_color, $
           thick = 5, position = pos)
-        if n_elements(param) eq 2 then begin
+        if param_valid then begin
           !null = plot(chan_index, param[0] * exp(chan_index / param[1]), /current, axis_style = 0, $
             xrange = xrange, xstyle = exact, yrange = yrange, ystyle = exact, $
             color = accent_color, $
@@ -366,6 +370,7 @@ pro PlotEventsController__define
     eevt:ptr_new(), $
     vals:ptr_new(), $
     eevt_ids:ptr_new(), $
+    fit_params:ptr_new(), $
     handler:ptr_new(), $
     window_settings:ptr_new(), $
     plot_window_defined:!false, $
