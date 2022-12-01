@@ -39,6 +39,7 @@ function PlotEventsWindow::init, controller, window_settings = window_settings
 
   exact = 1
   padded = 2
+  padded_exact = 3
 
   max_spec = ws.max_spec()
 
@@ -118,10 +119,8 @@ function PlotEventsWindow::init, controller, window_settings = window_settings
     window = plot_window)
 
   highlights = plot(dummy_array1d, dummy_array1d, /overplot, $
-    xstyle = exact, ystyle = padded, $
-    symbol = square, sym_size = 1.2, sym_thick = 2, color = accent_color1, linestyle = 'none', $
-    position = pos, $
-    window = plot_window)
+    symbol = square, sym_size = 1.2, sym_thick = 2, $
+    color = accent_color1, linestyle = 'none')
 
   row_index += lines_for_lc
 
@@ -135,16 +134,12 @@ function PlotEventsWindow::init, controller, window_settings = window_settings
 
     spec_array[i] = plot(dummy_array1d, dummy_array1d, /current, /ylog, $
       ytitle = 'Counts per second', thick = 2, $
-      xstyle = exact, ystyle = exact, $
+      xstyle = exact, ystyle = padded_exact, $
       color = accent_color1, $
       position = pos, $
       window = plot_window)
     back_spec_array[i] = plot(dummy_array1d, dummy_array1d, /overplot, /ylog, $
-      thick = 2, $
-      xstyle = exact, ystyle = exact, $
-      color = fg_color, $
-      position = pos, $
-      window = plot_window)
+      thick = 2, color = fg_color)
 
     pos = plot_coord(row_index, panel1, imax, jmax, left = 4.0 * xunit, margins = margins)
 
@@ -155,9 +150,7 @@ function PlotEventsWindow::init, controller, window_settings = window_settings
       position = pos, $
       window = plot_window)
     fit_array[i] = plot(dummy_array1d, dummy_array1d, /overplot, /ylog, $
-      thick = 2, $
-      color = fg_color, $
-      window = plot_window)
+      thick = 2, color = fg_color)
 
     ++row_index
   endfor
@@ -188,9 +181,12 @@ pro PlotEventsWindow::set_title, title
   self.title = title
 end
 
-pro PlotEventsWindow::set_event, this_eevt
+pro PlotEventsWindow::set_event, this_eevt, fit_param = fit_param
   self.eevt = ptr_new(this_eevt)
   self.spec0_index = 0
+
+  if keyword_set(fit_param) then self.fit_param = ptr_new(fit_param) $
+  else self.fit_param = ptr_new()
 end
 
 pro PlotEventsWindow::set_spec0_index, spec0_index
@@ -207,6 +203,8 @@ pro PlotEventsWindow::set_log, log
 end
 
 pro PlotEventsWindow::update
+  if not ptr_valid(self.eevt) then return
+
   window_settings = *self.window_settings
   plot_window = *self.plot_window
   time_format = *self.time_format
@@ -224,6 +222,7 @@ pro PlotEventsWindow::update
 
   title = self.title
   this_eevt = *self.eevt
+
   if self.log then log = 1 else log = 0
   spec0_index = self.spec0_index
 
@@ -231,27 +230,33 @@ pro PlotEventsWindow::update
 
   eevt_len = this_eevt[0].eevt.evt_length
 
+  if ptr_valid(self.fit_param) then begin
+    fit_param = *self.fit_param
+  endif else begin
+    fit_param = make_array(eevt_len, 2, /float, value = !values.f_nan)
+  endelse
+
   jday = this_eevt[0:eevt_len - 1].hk.jday
 
   num_chan = 64
   chan_index = findgen(num_chan)
 
   ; Time step index where background spectrum is found in each event.
-  back_idx = 60
+  back_spec_idx = 60
 
   ; Channel indices that determine the range for spectra to
   ; agree with the background spectrum. This is used to scale the spectra.
-  first_chan_idx = 50
-  last_chan_idx = 60
+  first_back_chan = 50
+  last_back_chan = 60
 
-  bp_low_spec = transpose(this_eevt[0:eevt_len - 1].eevt.bp_low_spec);
-  this_back_spec = this_eevt[back_idx].eevt.bp_low_spec
+  bp_low_spec = transpose(this_eevt[0:eevt_len - 1].eevt.bp_low_spec)
+  this_back_spec = this_eevt[back_spec_idx].eevt.bp_low_spec
 
   bp_diff_spec = make_array(eevt_len, num_chan, /float)
 
   for i = 0, eevt_len - 1 do begin
-    scale_factor = total(this_back_spec[first_chan_idx:last_chan_idx])/total(bp_low_spec[i, first_chan_idx:last_chan_idx])
-    bp_diff_spec[i, *] = scale_factor * bp_low_spec[i, *] - this_back_spec
+    scale_factor = total(bp_low_spec[i, first_back_chan:last_back_chan])/total(this_back_spec[first_back_chan:last_back_chan])
+    bp_diff_spec[i, *] = bp_low_spec[i, *] - scale_factor * this_back_spec
   endfor
 
   alt = this_eevt[0:eevt_len - 1].eph.alt
@@ -379,8 +384,9 @@ pro PlotEventsWindow::update
     back_spec_plot.yrange = spec_range
     back_spec_plot.ylog = log
 
-    spectral_index = this_eevt[i].eevt.exp_fac
-    fit_valid = finite(spectral_index)
+    amp = fit_param[i, 0]
+    spectral_index = fit_param[i, 1]
+    fit_valid = finite(amp) and finite(spectral_index)
     if fit_valid then param_label = String(format = ', SI = %0.2f', spectral_index) else param_label = ''
 
     title = string(format = 'alt = %d', alt[i]) + param_label
@@ -396,11 +402,6 @@ pro PlotEventsWindow::update
     diff_spec_plot.ylog = log
 
     if fit_valid then begin
-      threshold = 0.2
-      if spectral_index gt threshold then amp = diff_min $
-      else if spectral_index lt -threshold then amp = diff_max $
-      else amp = sqrt(abs(diff_min * diff_max))
-
       fit_plot.SetData, chan_index, amp * exp(chan_index / spectral_index)
       ;      fit_plot.xrange = chan_range
       ;      fit_plot.yrange = diff_spec_range
@@ -437,7 +438,7 @@ pro PlotEventsWindow::update
 end
 
 function PlotEventsWindow::MouseDown, window, x, y, button, keymods, clicks
-  return, 0
+  return, 1
 end
 
 ; Class definition.
@@ -463,6 +464,7 @@ pro PlotEventsWindow__define
     diff_spec_array:ptr_new(), $
     fit_array:ptr_new(), $
     eevt:ptr_new(), $
+    fit_param:ptr_new(), $
     title:'', $
     spec0_index:0, $
     log:!true $
