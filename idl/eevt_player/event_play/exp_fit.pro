@@ -1,22 +1,19 @@
-function exp_fit,x0,y0,yfit=yfit
+function exp_fit, xin, yin, yfit = yfit
+  param = [ !values.f_nan, !values.f_nan ]
 
-  ; rename so that this function does not
-  ; change the original values
-  x = x0
-  y = y0
-
-  qx = where(x gt 0,nqx)
-  if nqx le 1 then begin
-    message,'There are not enough non-zero X values!',/continue
-    return,-1
+  qx = where(xin gt 0, nqx)
+  if nqx lt 2 then begin
+    message,'There are not enough non-zero X values!', /continue
+    return, param
   endif
-  x = x[qx]
-  y = y[qx]
 
-  qy = where(y gt 0,nqy)
-  if nqy le 1 then begin
-    message,'There are not enough non-zero Y values!',/continue
-    return,-1
+  x = xin[qx]
+  y = yin[qx]
+
+  qy = where(y gt 0, nqy)
+  if nqy lt 2 then begin
+    message,'There are not enough non-zero Y values!', /continue
+    return, param
   endif
 
   x = x[qy]
@@ -24,14 +21,29 @@ function exp_fit,x0,y0,yfit=yfit
 
   ylog = alog(y)
 
-  param_tmp = linfit(x,ylog)
-  param = param_tmp
-  param[0] = exp(param[0])
+  param_tmp = linfit(x, ylog)
+  if finite(param_tmp[0]) then begin
+    param[0] = float(exp(param_tmp[0]))
 
-  if param_tmp[1] ne 0 then param[1] = 1.0/param_tmp[1] $
-  else param[1] = double("NaN")
+    ; If slope is nan, just fall through (param[1] is already nan).
+    if not finite(param_tmp[1], /nan) then begin
+      ; Slope is not nan, but may not be finite.
+      if finite(param_tmp[1]) then begin
+        ; Slope is finite, but may be 0.0.
+        if param_tmp[1] ne 0.0 then begin
+          ; Slope is well-behaved, stick 1 / slope in param[1]
+          param[1] = float(1.0 / param_tmp[1])
+          yfit = exp(poly(x, param_tmp))
+        endif else begin
+          ; Slope is 0.0, so 1 / slope is infinity.
+          param[1] = !values.f_infinity
+        endelse
+      endif else begin
+        ; Slope is infinity, so 1 / slope is 0.0.
+        param[1] = float(0.0)
+      endelse
+    endif
+  endif
 
-  yfit = exp(poly(x,param_tmp))
-
-  return,param
+  return, param
 end
