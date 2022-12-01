@@ -269,7 +269,7 @@ pro plot_events_pro, eevt, vals, eevt_ids, zrange = zrange
         param = exp_fit(chan_index[ind_low:ind_high], $
           diff_spec_for_fit[ind_low:ind_high], yfit=yfit)
 
-        param_valid = n_elements(param) eq 2
+        param_valid = finite(param[0]) and finite(param[1])
 
         exp_fac = this_eevt[i].eevt.exp_fac
         if param_valid then begin
