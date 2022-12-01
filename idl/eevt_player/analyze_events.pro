@@ -32,7 +32,7 @@ select, eevt, vals, eevt_ids $
   , uls = dictionary( 'parameter' , value $
   )
 
-fit_spectra, eevt, vals, eevt_ids
+fit_params = fit_spectra(eevt, vals, eevt_ids)
 
 ; Uncomment one of these to get the right settings for your monitor. If plots
 ; are appearing on the wrong monitor, add or toggle the parameter
@@ -46,11 +46,9 @@ fit_spectra, eevt, vals, eevt_ids
 ; Large display.
 window_settings = obj_new('WindowSettings', ysize = 2138* 14 / 15, max_spec = 5)
 
-; This is a work in progress -- eventually this will be the heart of how
-; all the plots are managed and talk to each other. For now, just need it here.
-controller = obj_new('AnalyzeEventsController', eevt, vals, eevt_ids, $
-  window_settings = ptr_new(window_settings) $
-  )
+; This is the heart of how all individual events are plotted.
+controller = obj_new('AnalyzeEventsController', eevt, vals, eevt_ids, fit_params, $
+  window_settings = ptr_new(window_settings))
 
 handler = obj_new('AnalyzeEventsHandler', controller)
 
