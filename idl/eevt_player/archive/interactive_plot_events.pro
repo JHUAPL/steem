@@ -206,7 +206,7 @@ pro interactive_plot_events, eevt, vals
           xrange = xrange, xstyle = 1, yrange = yrange, ystyle = 1, $
           thick = 5, position = pos)
 
-        if n_elements(param) eq 2 then begin
+        if finite(param[0]) and finite(param[1]) then begin
           safe_close, fp
           fp = plot(chan_index, param[0] * exp(chan_index / param[1]), /current, thick = 5, color = red, $
             xrange = xrange, xstyle = 1, yrange = yrange, ystyle = 1, $
