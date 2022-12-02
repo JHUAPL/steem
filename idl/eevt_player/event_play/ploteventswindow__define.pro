@@ -202,6 +202,7 @@ pro PlotEventsWindow::set_log, log
   self.log = log
 end
 
+; This was the original "new" way to update plots. NOT USED.
 pro PlotEventsWindow::update
   if not ptr_valid(self.eevt) then return
 
@@ -358,8 +359,8 @@ pro PlotEventsWindow::update
     spec_min = min( [this_evt_spec, this_back_spec ], max = spec_max)
     spec_range = [ spec_min, spec_max ]
 
-    indices = where(this_diff_spec gt 0, /null)
     if log then begin
+      indices = where(this_diff_spec gt 0, /null)
       diff_min = min(this_diff_spec[indices])
       diff_max = max(this_diff_spec[indices])
     endif else begin
@@ -411,7 +412,7 @@ pro PlotEventsWindow::update
   endfor
 
   for i = 0, max_spec - 1 do begin
-    if i < num_spec_to_show then hide = 0 else hide = 1
+    if i lt num_spec_to_show then hide = 0 else hide = 1
 
     spec_plot.hide = hide
     back_spec_plot.hide = hide
@@ -435,6 +436,267 @@ pro PlotEventsWindow::update
 
   plot_window.refresh
   plot_window.SetCurrent
+end
+
+pro PlotEventsWindow::update_event, jday, chan_index, $
+  bp_low_spec, this_back_spec, bp_diff_spec, $
+  alt, bp_low, fit_param = fit_param
+
+  self.jday = ptr_new(jday)
+  self.chan_index = ptr_new(chan_index)
+  self.bp_low_spec = ptr_new(bp_low_spec)
+  self.this_back_spec = ptr_new(this_back_spec)
+  self.bp_diff_spec = ptr_new(bp_diff_spec)
+  self.alt = ptr_new(alt)
+  self.bp_low = ptr_new(bp_low)
+  self.fit_param = ptr_new(fit_param)
+
+  plot_window = *self.plot_window
+  time_format = *self.time_format
+  time_units = *self.time_units
+  title_plot = *self.title_plot
+  spectrogram = *self.spectrogram
+  diff_spect = *self.diff_spect
+  altitude = *self.altitude
+  light_curve = *self.light_curve
+
+  title = self.title
+
+  if self.log then log = 1 else log = 0
+
+  plot_window.refresh, /disable
+
+  title_plot.refresh, /disable
+  spectrogram.refresh, /disable
+  diff_spect.refresh, /disable
+  altitude.refresh, /disable
+  light_curve.refresh, /disable
+
+  eevt_len = jday.length
+  num_chan = chan_index.length
+
+  jday_range = [ jday[0], jday[eevt_len - 1] ]
+  chan_range = [ chan_index[0], chan_index[num_chan - 1] ]
+
+  ;  alt_min = min(alt, max = alt_max)
+  ;  alt_range = [ alt_min, alt_max ]
+  ;
+  ;  bp_min = min(bp_low, max = bp_max)
+  ;  bp_low_range = [ bp_min, bp_max ]
+
+  title_plot.title = title
+
+  ; For the spectrograms, at first tried similar approach as for the individual
+  ; spectra: kept the initial spectrogram and just updated the data. But this
+  ; did not work -- the colorbar and/or Z axis range did not update correctly.
+  ; Falling back on deleting the old plot and creating a new one each time.
+
+  ; Get position of previous spectrogram. Then delete it and its axes.
+  pos = spectrogram.position
+
+  axes = spectrogram.axes
+  for i = 0, axes.length - 1 do begin
+    axes[i].delete
+  endfor
+  spectrogram.delete
+
+  ; Create new spectrogram plot, in same position as previous plot.
+  spectrogram = plot_spectrogram(bp_low_spec, jday, chan_index, $
+    xrange = jday_range, yrange = chan_range, $
+    xtickformat = time_format, xtickunits = time_units, $
+    position = pos, $
+    window = plot_window)
+
+  ; Get position of previous differential spectrogram. Then delete it and its axes.
+  pos = diff_spect.position
+
+  axes = diff_spect.axes
+  for i = 0, axes.length - 1 do begin
+    axes[i].delete
+  endfor
+  diff_spect.delete
+
+  ; Create new differential spectrogram plot, in same position as previous plot.
+  diff_spect = plot_spectrogram(bp_diff_spec, jday[0:eevt_len - 1], chan_index, $
+    xrange = jday_range, yrange = chan_range, $
+    xtickformat = time_format, xtickunits = time_units, $
+    position = pos, $
+    window = plot_window)
+
+  altitude.SetData, jday, alt
+  ;  altitude.xrange = jday_range
+  ;  altitude.yrange = alt_range
+  ; Keep altitude linear even in log mode.
+  ;  altitude.ylog = log
+
+  light_curve.SetData, jday, bp_low
+  ;  light_curve.xrange = jday_range
+  ;  light_curve.yrange = bp_low_range
+  light_curve.ylog = log
+
+  title_plot.refresh
+  spectrogram.refresh
+  diff_spect.refresh
+  altitude.refresh
+  light_curve.refresh
+
+  plot_window.refresh
+  plot_window.setCurrent
+end
+
+pro PlotEventsWindow::update_spectra, spec0_index
+  jday = *self.jday
+  chan_index = *self.chan_index
+  bp_low_spec = *self.bp_low_spec
+  this_back_spec = *self.this_back_spec
+  bp_diff_spec = *self.bp_diff_spec
+  alt = *self.alt
+  bp_low = *self.bp_low
+
+  plot_window = *self.plot_window
+  window_settings = *self.window_settings
+  time_format = *self.time_format
+  time_units = *self.time_units
+  highlights = *self.highlights
+  spec_array = *self.spec_array
+  back_spec_array = *self.back_spec_array
+  diff_spec_array = *self.diff_spec_array
+  fit_array = *self.fit_array
+
+  if self.log then log = 1 else log = 0
+
+  max_spec = window_settings.max_spec()
+
+  plot_window.refresh, /disable
+
+  highlights.refresh, /disable
+  for i = 0, max_spec - 1 do begin
+    spec_array[i].refresh, /disable
+    back_spec_array[i].refresh, /disable
+    diff_spec_array[i].refresh, /disable
+    fit_array[i].refresh, /disable
+  endfor
+
+  eevt_len = jday.length
+  num_chan = chan_index.length
+
+  jday_range = [ jday[0], jday[eevt_len - 1] ]
+  chan_range = [ chan_index[0], chan_index[num_chan - 1] ]
+
+  ;  bp_min = min(bp_low, max = bp_max)
+  ;  bp_low_range = [ bp_min, bp_max ]
+
+  num_spec_to_show = min( [ max_spec, eevt_len - spec0_index ] )
+  specN_index = spec0_index + num_spec_to_show - 1
+
+  highlights.SetData, jday[spec0_index:specN_index], bp_low[spec0_index:specN_index]
+  ;  highlights.xrange = jday_range
+  ;  highlights.yrange = bp_low_range
+  highlights.ylog = log
+
+  for i = spec0_index, specN_index do begin
+    i_array = i - spec0_index
+
+    spec_plot = spec_array[i_array]
+    back_spec_plot = back_spec_array[i_array]
+    diff_spec_plot = diff_spec_array[i_array]
+    fit_plot = fit_array[i_array]
+
+    this_evt_spec = reform(bp_low_spec[i, *])
+    this_diff_spec = reform(bp_diff_spec[i, *])
+
+    spec_min = min( [this_evt_spec, this_back_spec ], max = spec_max)
+    spec_range = [ spec_min, spec_max ]
+
+    if log then begin
+      indices = where(this_diff_spec gt 0, /null)
+      diff_min = min(this_diff_spec[indices])
+      diff_max = max(this_diff_spec[indices])
+    endif else begin
+      diff_min = min(this_diff_spec)
+      diff_max = max(this_diff_spec)
+    endelse
+
+    diff_spec_range = [ diff_min, diff_max ]
+
+    if i eq spec0_index then title = 'Spectrum' else title = ''
+    if i eq specN_index then xtitle = 'Channel' else xtitle = ''
+
+    spec_plot.SetData, chan_index, this_evt_spec
+    spec_plot.title = title
+    spec_plot.xtitle = xtitle
+    spec_plot.xrange = chan_range
+    spec_plot.yrange = spec_range
+    spec_plot.ylog = log
+
+    back_spec_plot.SetData, chan_index, this_back_spec
+    back_spec_plot.xrange = chan_range
+    back_spec_plot.yrange = spec_range
+    back_spec_plot.ylog = log
+
+    if ptr_valid(self.fit_param) then begin
+      fit_param = *self.fit_param
+      amp = fit_param[i, 0]
+      spectral_index = fit_param[i, 1]
+      fit_valid = finite(amp) and finite(spectral_index)
+    endif else begin
+      fit_valid = !false
+    endelse
+
+    if fit_valid then param_label = String(format = ', SI = %0.2f', spectral_index) else param_label = ''
+    title = string(format = 'alt = %d', alt[i]) + param_label
+
+    if i eq spec0_index then title = 'Diff spec, ' + title
+    if i eq specN_index then xtitle = 'Channel' else xtitle = ''
+
+    diff_spec_plot.SetData, chan_index, this_diff_spec
+    diff_spec_plot.xrange = chan_range
+    diff_spec_plot.yrange = diff_spec_range
+    diff_spec_plot.title = title
+    diff_spec_plot.xtitle = xtitle
+    diff_spec_plot.ylog = log
+
+    if fit_valid then begin
+      fit_plot.SetData, chan_index, amp * exp(chan_index / spectral_index)
+      ;      fit_plot.xrange = chan_range
+      ;      fit_plot.yrange = diff_spec_range
+    endif else begin
+      ;      fit_plot.SetData, [ 0.0 ]
+    endelse
+    fit_plot.ylog = log
+
+  endfor
+
+  for i = 0, max_spec - 1 do begin
+    if i lt num_spec_to_show then hide = 0 else hide = 1
+
+    spec_array[i].hide = hide
+    back_spec_array[i].hide = hide
+    diff_spec_array[i].hide = hide
+
+    if not fit_valid then fit_array[i].hide = 1 $
+    else fit_array[i].hide = hide
+  endfor
+
+  highlights.refresh
+  for i = 0, max_spec - 1 do begin
+    spec_array[i].refresh
+    back_spec_array[i].refresh
+    diff_spec_array[i].refresh
+    fit_array[i].refresh
+  endfor
+
+  plot_window.refresh
+  plot_window.setCurrent
+end
+
+function PlotEventsWindow::KeyHandler, window, isASCII, character, keyvalue, x, y, press, release, keymode
+  character = string(character)
+
+  if release then begin
+    if character eq 's' or character eq 'S' then begin
+    endif
+  endif
 end
 
 function PlotEventsWindow::MouseDown, window, x, y, button, keymods, clicks
@@ -463,6 +725,13 @@ pro PlotEventsWindow__define
     back_spec_array:ptr_new(), $
     diff_spec_array:ptr_new(), $
     fit_array:ptr_new(), $
+    jday:ptr_new(), $
+    chan_index:ptr_new(), $
+    bp_low_spec:ptr_new(), $
+    this_back_spec:ptr_new(), $
+    bp_diff_spec:ptr_new(), $
+    alt:ptr_new(), $
+    bp_low:ptr_new(), $
     eevt:ptr_new(), $
     fit_param:ptr_new(), $
     title:'', $

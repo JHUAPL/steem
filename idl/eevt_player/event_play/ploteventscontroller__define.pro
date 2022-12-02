@@ -55,9 +55,8 @@ pro PlotEventsController::show_plots, eevt_id = eevt_id
   this_eevt = eevt[event_index, *]
   this_fit = *fit_params[event_index]
 
-  new_plot_window.set_event, this_eevt, fit_param = this_fit
   new_plot_window.set_title, title
-  new_plot_window.update
+  self.plot_event, this_eevt, this_fit
 
   ; TODO clean up here: comment this out to create plots the old way as well as the "new" way.
   return
@@ -360,6 +359,45 @@ pro PlotEventsController::show_plots, eevt_id = eevt_id
   plot_window.refresh
   plot_window.SetCurrent
 
+end
+
+pro PlotEventsController::plot_event, this_eevt, this_fit
+  new_plot_window = *self.new_plot_window
+
+  eevt_len = this_eevt[0].eevt.evt_length
+
+  jday = this_eevt[0:eevt_len - 1].hk.jday
+
+  num_chan = 64
+  chan_index = findgen(num_chan)
+
+  ; Time step index where background spectrum is found in each event.
+  back_spec_idx = 60
+
+  ; Channel indices that determine the range for spectra to
+  ; agree with the background spectrum. This is used to scale the spectra.
+  first_back_chan = 50
+  last_back_chan = 60
+
+  bp_low_spec = transpose(this_eevt[0:eevt_len - 1].eevt.bp_low_spec)
+  this_back_spec = this_eevt[back_spec_idx].eevt.bp_low_spec
+
+  bp_diff_spec = make_array(eevt_len, num_chan, /float)
+
+  for i = 0, eevt_len - 1 do begin
+    scale_factor = total(bp_low_spec[i, first_back_chan:last_back_chan])/total(this_back_spec[first_back_chan:last_back_chan])
+    bp_diff_spec[i, *] = bp_low_spec[i, *] - scale_factor * this_back_spec
+  endfor
+
+  alt = this_eevt[0:eevt_len - 1].eph.alt
+  bp_low = this_eevt[0:eevt_len-1].eevt.bp_low
+
+  new_plot_window.update_event, jday, chan_index, $
+    bp_low_spec, this_back_spec, bp_diff_spec, $
+    alt, bp_low, fit_param = this_fit
+
+  spec0_index = 0
+  new_plot_window.update_spectra, spec0_index
 end
 
 ; Controller class definition.
