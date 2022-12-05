@@ -26,7 +26,7 @@ function fit_spectra, eevt, vals, eevt_ids, first_fit_chan = first_fit_chan, las
 
     diff_spec = make_array(eevt_len, num_chan, /float)
 
-    this_fit = make_array(eevt_len, 2, /float)
+    this_fit = make_array(eevt_len, 3, /float)
 
     for j = 0, eevt_len - 1 do begin
       scale_factor = total(bp_low_spec[first_back_chan:last_back_chan, 0, j])/total(this_back_spec[first_back_chan:last_back_chan])
@@ -40,6 +40,7 @@ function fit_spectra, eevt, vals, eevt_ids, first_fit_chan = first_fit_chan, las
 
       this_fit[j, 0] = param[0]
       this_fit[j, 1] = param[1]
+      this_fit[j, 2] = scale_factor
     endfor
 
     fit_param[i] = ptr_new(this_fit)
