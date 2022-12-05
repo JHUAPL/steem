@@ -3,11 +3,11 @@
 ; To see that version, go back to the commit whose message is
 ; "Split updating overall event plots from spectra plots." After that
 ; commit, there was a bunch of code clean-up.
-function PlotEventsWindow::init, window_settings = window_settings
+function PlotEventsWindow::init, controller, window_settings = window_settings
   handler = self
 
   if not keyword_set(window_settings) then $
-    window_settings = ptr_new(obj_new('WindowSettings'))
+    window_settings = obj_new('WindowSettings')
 
   ; Do this or else the color bars are messed up.
   device, decomposed = 0
@@ -19,8 +19,7 @@ function PlotEventsWindow::init, window_settings = window_settings
   ; Standard procedural plot set-up.
   standard_plot
 
-  ws = *window_settings
-  plot_window = ws.create_win(title = 'Event Detail', handler = handler)
+  plot_window = window_settings.create_win(title = 'Event Detail', handler = handler)
 
   plot_window.refresh, /disable
 
@@ -46,16 +45,16 @@ function PlotEventsWindow::init, window_settings = window_settings
   padded = 2
   padded_exact = 3
 
-  max_spec = ws.max_spec()
+  max_spec = window_settings.max_spec()
 
-  xsize = ws.xsize()
-  ysize = ws.ysize()
+  xsize = window_settings.xsize()
+  ysize = window_settings.ysize()
 
   xunit = 9.0 / xsize
   yunit = 8.0 / ysize
   margins = [ 8.0 * xunit, 8.0 * xunit, 2.0 * yunit, 8.0 * yunit ]
 
-  max_spec = ws.max_spec()
+  max_spec = window_settings.max_spec()
 
   ; Color bars are built-in for OO spectrograms. The size of the main plot seems correct,
   ; but the color bar labels tend to run into the next plot. This bit of trickery is
@@ -160,7 +159,8 @@ function PlotEventsWindow::init, window_settings = window_settings
     ++row_index
   endfor
 
-  self.window_settings = window_settings
+  self.window_settings = ptr_new(window_settings)
+  self.controller = ptr_new(controller)
   self.plot_window = ptr_new(plot_window)
   self.time_format = ptr_new(time_format)
   self.time_units = ptr_new(time_units)
@@ -185,8 +185,69 @@ pro PlotEventsWindow::set_title, title
   self.title = title
 end
 
-pro PlotEventsWindow::set_log, log
+pro PlotEventsWindow::update_log, log
+  if self.log eq log then return
+
   self.log = log
+
+  ;  self.replot_event
+  ;  self.update_spectra, self.spec0_index, force_update = !true
+  ;
+  ;  return
+
+  ; Unpack the necessary plot object fields.
+  plot_window = *self.plot_window
+  spectrogram = *self.spectrogram
+  diff_spect = *self.diff_spect
+  altitude = *self.altitude
+  light_curve = *self.light_curve
+  highlights = *self.highlights
+  spec_array = *self.spec_array
+  back_spec_array = *self.back_spec_array
+  diff_spec_array = *self.diff_spec_array
+  fit_array = *self.fit_array
+
+  plot_window.refresh, /disable
+  spectrogram.refresh, /disable
+  diff_spect.refresh, /disable
+  altitude.refresh, /disable
+  light_curve.refresh, /disable
+  highlights.refresh, /disable
+
+  for i = 0, spec_array.length - 1 do begin
+    spec_array[i].refresh, /disable
+    back_spec_array[i].refresh, /disable
+    diff_spec_array[i].refresh, /disable
+    fit_array[i].refresh, /disable
+  endfor
+
+  ;  spectrogram.zlog = log
+  ;  diff_spect.zlog = log
+  ; altitude.ylog = log
+  light_curve.ylog = log
+  highlights.ylog = log
+
+  for i = 0, spec_array.length - 1 do begin
+    spec_array[i].ylog = log
+    back_spec_array[i].ylog = log
+    diff_spec_array[i].ylog = log
+    fit_array[i].ylog = log
+  endfor
+
+  spectrogram.refresh
+  diff_spect.refresh
+  altitude.refresh
+  light_curve.refresh
+  highlights.refresh
+
+  for i = 0, spec_array.length - 1 do begin
+    spec_array[i].refresh
+    back_spec_array[i].refresh
+    diff_spec_array[i].refresh
+    fit_array[i].refresh
+  endfor
+
+  plot_window.refresh
 end
 
 pro PlotEventsWindow::update_event, jday, chan_index, $
@@ -201,7 +262,21 @@ pro PlotEventsWindow::update_event, jday, chan_index, $
   self.bp_diff_spec = ptr_new(bp_diff_spec)
   self.alt = ptr_new(alt)
   self.bp_low = ptr_new(bp_low)
-  self.fit_param = ptr_new(fit_param)
+
+  if keyword_set(fit_param) then self.fit_param = ptr_new(fit_param) $
+  else self.fit_param = ptr_new()
+
+  self.replot_event
+end
+
+pro PlotEventsWindow::replot_event
+  ; Unpack the necessary window data fields.
+  jday = *self.jday
+  chan_index = *self.chan_index
+  bp_low_spec = *self.bp_low_spec
+  bp_diff_spec = *self.bp_diff_spec
+  alt = *self.alt
+  bp_low = *self.bp_low
 
   ; Unpack the necessary plot object fields.
   plot_window = *self.plot_window
@@ -260,6 +335,7 @@ pro PlotEventsWindow::update_event, jday, chan_index, $
   spectrogram = plot_spectrogram(bp_low_spec, jday, chan_index, $
     xrange = jday_range, yrange = chan_range, $
     xtickformat = time_format, xtickunits = time_units, $
+    ;    zlog = log, $
     position = pos, $
     window = plot_window)
 
@@ -276,6 +352,7 @@ pro PlotEventsWindow::update_event, jday, chan_index, $
   diff_spect = plot_spectrogram(bp_diff_spec, jday[0:eevt_len - 1], chan_index, $
     xrange = jday_range, yrange = chan_range, $
     xtickformat = time_format, xtickunits = time_units, $
+    ;    zlog = log, $
     position = pos, $
     window = plot_window)
 
@@ -283,7 +360,7 @@ pro PlotEventsWindow::update_event, jday, chan_index, $
   ;  altitude.xrange = jday_range
   ;  altitude.yrange = alt_range
   ; Keep altitude linear even in log mode.
-  ;  altitude.ylog = log
+  ; altitude.ylog = log
 
   light_curve.SetData, jday, bp_low
   ;  light_curve.xrange = jday_range
@@ -299,11 +376,14 @@ pro PlotEventsWindow::update_event, jday, chan_index, $
   ; Finally refresh and bring the window to the front.
   plot_window.refresh
   plot_window.setCurrent
+
+  self.spectrogram = ptr_new(spectrogram)
+  self.diff_spect = ptr_new(diff_spect)
 end
 
-pro PlotEventsWindow::update_spectra, spec0_index
+pro PlotEventsWindow::update_spectra, spec0_index, force_update = force_update
   ; Do nothing if no event data has been supplied previously.
-  if not ptr_valid(jday) then return
+  if not ptr_valid(self.jday) then return
 
   ; Unpack the necessary window data fields.
   jday = *self.jday
@@ -337,8 +417,10 @@ pro PlotEventsWindow::update_spectra, spec0_index
   if spec0_index lt 0 then spec0_index = 0
   if spec0_index ge eevt_len then spec0_index = eevt_len - 1
 
-  ; Skip update if we're already displaying said spectrum range.
-  if self.spec0_index eq spec0_index then return
+  if not keyword_set(force_update) then begin
+    ; Skip update if we're already displaying said spectrum range.
+    if self.spec0_index eq spec0_index then return
+  endif
 
   ; Store the current start point for future reference,
   ; then go on to apply the update.
@@ -359,8 +441,9 @@ pro PlotEventsWindow::update_spectra, spec0_index
   jday_range = [ jday[0], jday[eevt_len - 1] ]
   chan_range = [ chan_index[0], chan_index[num_chan - 1] ]
 
-  ;  bp_min = min(bp_low, max = bp_max)
-  ;  bp_low_range = [ bp_min, bp_max ]
+  bp_min = min(bp_low[7:bp_low.length - 1])
+  bp_max = max(bp_low)
+  bp_low_range = [ bp_min, bp_max ]
 
   ; Show up to max_spec spectra.
   num_spec_to_show = min( [ max_spec, eevt_len - spec0_index ] )
@@ -369,7 +452,7 @@ pro PlotEventsWindow::update_spectra, spec0_index
   ; Identify the current selection of spectra by highlighting them on the "light curve".
   highlights.SetData, jday[spec0_index:specN_index], bp_low[spec0_index:specN_index]
   ;  highlights.xrange = jday_range
-  ;  highlights.yrange = bp_low_range
+  highlights.yrange = bp_low_range
   highlights.ylog = log
 
   ; Main loop: update plots to show the requested range of spectra.
@@ -387,9 +470,10 @@ pro PlotEventsWindow::update_spectra, spec0_index
     ; Slice out just the current spectrum data.
     this_evt_spec = reform(bp_low_spec[i, *])
     this_diff_spec = reform(bp_diff_spec[i, *])
+    back_spec = reform(this_back_spec[i, *])
 
     ; Compute ranges for data.
-    spec_min = min( [this_evt_spec, this_back_spec ], max = spec_max)
+    spec_min = min( [this_evt_spec, back_spec ], max = spec_max)
     spec_range = [ spec_min, spec_max ]
 
     if log then begin
@@ -414,7 +498,7 @@ pro PlotEventsWindow::update_spectra, spec0_index
     spec_plot.yrange = spec_range
     spec_plot.ylog = log
 
-    back_spec_plot.SetData, chan_index, this_back_spec
+    back_spec_plot.SetData, chan_index, back_spec
     back_spec_plot.xrange = chan_range
     back_spec_plot.yrange = spec_range
     back_spec_plot.ylog = log
@@ -486,7 +570,29 @@ function PlotEventsWindow::KeyHandler, window, isASCII, character, keyvalue, x, 
   character = string(character)
 
   if release then begin
-    if character eq 's' or character eq 'S' then begin
+    r = character
+
+    if r eq 'b' or r eq 'B' then begin
+
+      spec0_index = self.spec0_index - 1
+      self.update_spectra, spec0_index
+
+    endif else if r eq ' ' then begin
+
+      spec0_index = self.spec0_index + 1
+      self.update_spectra, spec0_index
+
+    endif else if r eq 'l' or r eq 'L' then begin
+      ; Toggle linear/log scaling.
+      if self.log then log = !false else log = !true
+
+      if log then print, 'Displaying event with logarithmic scaling.' $
+      else print, 'Displaying event with linear scaling.'
+
+      self.update_log, log
+    endif else if r eq 'r' or r eq 'R' then begin
+      self.replot_event
+      self.update_spectra, self.spec0_index, force_update = !true
     endif
   endif
 end
@@ -503,6 +609,7 @@ pro PlotEventsWindow__define
   !null = { $
     PlotEventsWindow, inherits GraphicsEventAdapter, $
     window_settings:ptr_new(), $
+    controller:ptr_new(), $
     plot_window:ptr_new(), $
     time_format:ptr_new(), $
     time_units:ptr_new(), $
