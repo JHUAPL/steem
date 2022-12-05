@@ -59,7 +59,7 @@ pro AnalyzeEventsController::show_spectra, selected_ids
 
   ; plot_events_pro, eevt, vals, eevt_ids, zrange = zrange
   controller = obj_new('PlotEventsController', eevt, vals, eevt_ids, fit_params, $
-    window_settings = ptr_new(window_settings))
+    window_settings = window_settings)
 
   controller->show_plots
 end

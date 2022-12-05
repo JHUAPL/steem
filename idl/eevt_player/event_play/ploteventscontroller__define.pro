@@ -21,9 +21,9 @@ function PlotEventsController::init, eevt, vals, eevt_ids, fit_params, $
   self.handler = ptr_new(obj_new('PlotEventsHandler', self))
 
   if not keyword_set(window_settings) then $
-    window_settings = ptr_new(obj_new('WindowSettings'))
+    window_settings = obj_new('WindowSettings')
 
-  self.window_settings = window_settings
+  self.window_settings = ptr_new(window_settings)
 
   self.plot_window_defined = !false
   self.plot_window = ptr_new()
