@@ -18,9 +18,9 @@ function AnalyzeEventsController::init, eevt, vals, eevt_ids, fit_params, $
   self.fit_params = ptr_new(fit_params)
 
   if not keyword_set(window_settings) then $
-    window_settings = ptr_new(obj_new('WindowSettings'))
+    window_settings = obj_new('WindowSettings')
 
-  self.window_settings = window_settings
+  self.window_settings = ptr_new(window_settings)
 
   return, 1
 end
