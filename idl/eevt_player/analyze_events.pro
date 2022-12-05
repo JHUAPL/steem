@@ -48,7 +48,7 @@ window_settings = obj_new('WindowSettings', ysize = 2138* 14 / 15, max_spec = 5)
 
 ; This is the heart of how all individual events are plotted.
 controller = obj_new('AnalyzeEventsController', eevt, vals, eevt_ids, fit_params, $
-  window_settings = ptr_new(window_settings))
+  window_settings = window_settings)
 
 handler = obj_new('AnalyzeEventsHandler', controller)
 
