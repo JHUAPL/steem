@@ -380,13 +380,15 @@ pro PlotEventsController::plot_event, this_eevt, this_fit
   last_back_chan = 60
 
   bp_low_spec = transpose(this_eevt[0:eevt_len - 1].eevt.bp_low_spec)
-  this_back_spec = this_eevt[back_spec_idx].eevt.bp_low_spec
+  event_back_spec = this_eevt[back_spec_idx].eevt.bp_low_spec
 
+  this_back_spec = make_array(eevt_len, num_chan, /float)
   bp_diff_spec = make_array(eevt_len, num_chan, /float)
 
   for i = 0, eevt_len - 1 do begin
-    scale_factor = total(bp_low_spec[i, first_back_chan:last_back_chan])/total(this_back_spec[first_back_chan:last_back_chan])
-    bp_diff_spec[i, *] = bp_low_spec[i, *] - scale_factor * this_back_spec
+    scale_factor = this_fit[i, 2]
+    this_back_spec[i, *]  = scale_factor * event_back_spec
+    bp_diff_spec[i, *] = bp_low_spec[i, *] - this_back_spec[i, *]
   endfor
 
   alt = this_eevt[0:eevt_len - 1].eph.alt
@@ -397,7 +399,7 @@ pro PlotEventsController::plot_event, this_eevt, this_fit
     alt, bp_low, fit_param = this_fit
 
   spec0_index = 0
-  new_plot_window.update_spectra, spec0_index
+  new_plot_window.update_spectra, spec0_index, force_update = !true
 end
 
 ; Controller class definition.
