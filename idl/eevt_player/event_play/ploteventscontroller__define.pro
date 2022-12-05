@@ -33,7 +33,7 @@ function PlotEventsController::init, eevt, vals, eevt_ids, fit_params, $
   return, 1
 end
 
-pro PlotEventsController::show_plots, eevt_id = eevt_id
+pro PlotEventsController::show_plots, event_index = event_index
 
   eevt = *self.eevt
   vals = *self.vals
@@ -43,11 +43,14 @@ pro PlotEventsController::show_plots, eevt_id = eevt_id
   window_settings = *self.window_settings
   new_plot_window = *self.new_plot_window
 
-  if not keyword_set(eevt_id) then eevt_id = eevt_ids[0]
+  if not keyword_set(event_index) then event_index = 0
 
-  event_index = where(eevt_ids eq eevt_id)
-  if event_index[0] eq -1 then return
-  event_index = event_index[0]
+  if eevt_ids.length eq 0 then return
+
+  if event_index lt 0 then event_index = 0
+  if event_index ge eevt_ids.length then event_index = eevt_ids.length - 1
+
+  self.event_index = event_index
 
   eevt_id = String(format = '%d', eevt_ids[event_index])
   title = 'Event ' + eevt_id
@@ -402,6 +405,19 @@ pro PlotEventsController::plot_event, this_eevt, this_fit
   new_plot_window.update_spectra, spec0_index, force_update = !true
 end
 
+pro PlotEventsController::next_event
+  eevt_ids  = *self.eevt_ids
+  if self.event_index lt eevt_ids.length - 1 then begin
+    self.show_plots, event_index = self.event_index + 1
+  endif
+end
+
+pro PlotEventsController::previous_event
+  if self.event_index gt 0 then begin
+    self.show_plots, event_index = self.event_index - 1
+  endif
+end
+
 ; Controller class definition.
 ;
 pro PlotEventsController__define
@@ -411,6 +427,7 @@ pro PlotEventsController__define
     vals:ptr_new(), $
     eevt_ids:ptr_new(), $
     fit_params:ptr_new(), $
+    event_index:0, $
     handler:ptr_new(), $
     window_settings:ptr_new(), $
     plot_window_defined:!false, $

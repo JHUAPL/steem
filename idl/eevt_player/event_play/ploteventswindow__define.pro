@@ -208,18 +208,6 @@ pro PlotEventsWindow::update_log, log
   fit_array = *self.fit_array
 
   plot_window.refresh, /disable
-  spectrogram.refresh, /disable
-  diff_spect.refresh, /disable
-  altitude.refresh, /disable
-  light_curve.refresh, /disable
-  highlights.refresh, /disable
-
-  for i = 0, spec_array.length - 1 do begin
-    spec_array[i].refresh, /disable
-    back_spec_array[i].refresh, /disable
-    diff_spec_array[i].refresh, /disable
-    fit_array[i].refresh, /disable
-  endfor
 
   ;  spectrogram.zlog = log
   ;  diff_spect.zlog = log
@@ -232,19 +220,6 @@ pro PlotEventsWindow::update_log, log
     back_spec_array[i].ylog = log
     diff_spec_array[i].ylog = log
     fit_array[i].ylog = log
-  endfor
-
-  spectrogram.refresh
-  diff_spect.refresh
-  altitude.refresh
-  light_curve.refresh
-  highlights.refresh
-
-  for i = 0, spec_array.length - 1 do begin
-    spec_array[i].refresh
-    back_spec_array[i].refresh
-    diff_spec_array[i].refresh
-    fit_array[i].refresh
   endfor
 
   plot_window.refresh
@@ -294,12 +269,6 @@ pro PlotEventsWindow::replot_event
 
   ; Disable window updates until all changes have been applied.
   plot_window.refresh, /disable
-
-  title_plot.refresh, /disable
-  spectrogram.refresh, /disable
-  diff_spect.refresh, /disable
-  altitude.refresh, /disable
-  light_curve.refresh, /disable
 
   ; Size of X and Y of the spectrogram.
   eevt_len = jday.length
@@ -367,12 +336,6 @@ pro PlotEventsWindow::replot_event
   ;  light_curve.yrange = bp_low_range
   light_curve.ylog = log
 
-  ; Now refresh all the plots in one pass.  title_plot.refresh
-  spectrogram.refresh
-  diff_spect.refresh
-  altitude.refresh
-  light_curve.refresh
-
   ; Finally refresh and bring the window to the front.
   plot_window.refresh
   plot_window.setCurrent
@@ -428,14 +391,6 @@ pro PlotEventsWindow::update_spectra, spec0_index, force_update = force_update
 
   ; Disable window updates until all changes have been applied.
   plot_window.refresh, /disable
-
-  highlights.refresh, /disable
-  for i = 0, max_spec - 1 do begin
-    spec_array[i].refresh, /disable
-    back_spec_array[i].refresh, /disable
-    diff_spec_array[i].refresh, /disable
-    fit_array[i].refresh, /disable
-  endfor
 
   ; Determine ranges to use for X and Y.
   jday_range = [ jday[0], jday[eevt_len - 1] ]
@@ -552,15 +507,6 @@ pro PlotEventsWindow::update_spectra, spec0_index, force_update = force_update
     else fit_array[i].hide = hide
   endfor
 
-  ; Now refresh all the plots in one pass.
-  highlights.refresh
-  for i = 0, max_spec - 1 do begin
-    spec_array[i].refresh
-    back_spec_array[i].refresh
-    diff_spec_array[i].refresh
-    fit_array[i].refresh
-  endfor
-
   ; Finally refresh and bring the window to the front.
   plot_window.refresh
   plot_window.setCurrent
@@ -568,6 +514,8 @@ end
 
 function PlotEventsWindow::KeyHandler, window, isASCII, character, keyvalue, x, y, press, release, keymode
   character = string(character)
+
+  controller = *self.controller
 
   if release then begin
     r = character
@@ -590,6 +538,10 @@ function PlotEventsWindow::KeyHandler, window, isASCII, character, keyvalue, x, 
       else print, 'Displaying event with linear scaling.'
 
       self.update_log, log
+    endif else if r eq 'n' then begin
+      controller.next_event
+    endif else if r eq 'p' or r eq 'P' or r eq 'N' then begin
+      controller.previous_event
     endif else if r eq 'r' or r eq 'R' then begin
       self.replot_event
       self.update_spectra, self.spec0_index, force_update = !true
