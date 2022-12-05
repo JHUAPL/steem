@@ -6,6 +6,7 @@ function plot_spectrogram, z, x, y, $
   ncolors = ncolors, $
   nodata = nodata, $
   suppress_color_bar = suppress_color_bar, $
+  zlog = zlog, $
   position = position, $
   window = window
 
@@ -53,7 +54,6 @@ function plot_spectrogram, z, x, y, $
     position = position, $
     window = window $
     )
-
 
   if not suppress_color_bar then begin
     !null = colorbar(target = c, title = 'counts per second', major = 5, tickformat = '(f7.2)')
