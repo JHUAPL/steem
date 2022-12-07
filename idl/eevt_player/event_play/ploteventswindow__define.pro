@@ -54,8 +54,6 @@ function PlotEventsWindow::init, controller, window_settings = window_settings
   yunit = 8.0 / ysize
   margins = [ 8.0 * xunit, 8.0 * xunit, 2.0 * yunit, 8.0 * yunit ]
 
-  max_spec = window_settings.max_spec()
-
   ; Color bars are built-in for OO spectrograms. The size of the main plot seems correct,
   ; but the color bar labels tend to run into the next plot. This bit of trickery is
   ; to try to get the color bars to display cleanly without running into anything.
@@ -81,7 +79,7 @@ function PlotEventsWindow::init, controller, window_settings = window_settings
   row_index += lines_for_title
 
   pos = plot_coord(row_index, panel0, imax, 1, margins = margins)
-  spectrogram = plot_spectrogram(dummy_array2d, dummy_array1d, dummy_array1d, $
+  spectrogram = obj_new('Spectrogram', dummy_array2d, dummy_array1d, dummy_array1d, $
     xtickformat = time_format, xtickunits = time_units, $
     nodata = !true, $
     suppress_color_bar = !true, $
@@ -90,7 +88,7 @@ function PlotEventsWindow::init, controller, window_settings = window_settings
   row_index += lines_for_spec
 
   pos = plot_coord(row_index, panel0, imax, 1, margins = margins)
-  diff_spect = plot_spectrogram(dummy_array2d, dummy_array1d, dummy_array1d, $
+  diff_spect = obj_new('Spectrogram', dummy_array2d, dummy_array1d, dummy_array1d, $
     xtickformat = time_format, xtickunits = time_units, $
     nodata = !true, $
     suppress_color_bar = !true, $
@@ -190,14 +188,9 @@ pro PlotEventsWindow::update_log, log
 
   self.log = log
 
-  ;  self.replot_event
-  ;  self.update_spectra, self.spec0_index, force_update = !true
-  ;
-  ;  return
-
   ; Unpack the necessary plot object fields.
   plot_window = *self.plot_window
-  spectrogram = *self.spectrogram
+  spect = *self.spectrogram
   diff_spect = *self.diff_spect
   altitude = *self.altitude
   light_curve = *self.light_curve
@@ -209,8 +202,9 @@ pro PlotEventsWindow::update_log, log
 
   plot_window.refresh, /disable
 
-  ;  spectrogram.zlog = log
-  ;  diff_spect.zlog = log
+  spect.zlog, log
+  diff_spect.zlog, log
+  ; Never display altitude in log scale.
   ; altitude.ylog = log
   light_curve.ylog = log
   highlights.ylog = log
@@ -258,7 +252,7 @@ pro PlotEventsWindow::replot_event
   time_format = *self.time_format
   time_units = *self.time_units
   title_plot = *self.title_plot
-  spectrogram = *self.spectrogram
+  spect = *self.spectrogram
   diff_spect = *self.diff_spect
   altitude = *self.altitude
   light_curve = *self.light_curve
@@ -278,11 +272,9 @@ pro PlotEventsWindow::replot_event
   jday_range = [ jday[0], jday[eevt_len - 1] ]
   chan_range = [ chan_index[0], chan_index[num_chan - 1] ]
 
-  ;  alt_min = min(alt, max = alt_max)
-  ;  alt_range = [ alt_min, alt_max ]
-  ;
-  ;  bp_min = min(bp_low, max = bp_max)
-  ;  bp_low_range = [ bp_min, bp_max ]
+  ;  alt_range = get_plot_range(alt, !false)
+
+  bp_low_range = get_plot_range(bp_low, log)
 
   title_plot.title = title
 
@@ -291,37 +283,27 @@ pro PlotEventsWindow::replot_event
   ; did not work -- the colorbar and/or Z axis range did not update correctly.
   ; Falling back on deleting the old plot and creating a new one each time.
 
-  ; Get position of previous spectrogram. Then delete it and its axes.
-  pos = spectrogram.position
-
-  axes = spectrogram.axes
-  for i = 0, axes.length - 1 do begin
-    axes[i].delete
-  endfor
-  spectrogram.delete
+  ; Get position of previous spectrogram, then delete it.
+  pos = spect.position()
+  spect.delete
 
   ; Create new spectrogram plot, in same position as previous plot.
-  spectrogram = plot_spectrogram(bp_low_spec, jday, chan_index, $
+  spect = obj_new('Spectrogram', bp_low_spec, jday, chan_index, $
     xrange = jday_range, yrange = chan_range, $
     xtickformat = time_format, xtickunits = time_units, $
-    ;    zlog = log, $
+    zlog = log, $
     position = pos, $
     window = plot_window)
 
-  ; Get position of previous differential spectrogram. Then delete it and its axes.
-  pos = diff_spect.position
-
-  axes = diff_spect.axes
-  for i = 0, axes.length - 1 do begin
-    axes[i].delete
-  endfor
+  ; Get position of previous differential spectrogram, then delete it.
+  pos = diff_spect.position()
   diff_spect.delete
 
   ; Create new differential spectrogram plot, in same position as previous plot.
-  diff_spect = plot_spectrogram(bp_diff_spec, jday[0:eevt_len - 1], chan_index, $
+  diff_spect = obj_new('Spectrogram', bp_diff_spec, jday[0:eevt_len - 1], chan_index, $
     xrange = jday_range, yrange = chan_range, $
     xtickformat = time_format, xtickunits = time_units, $
-    ;    zlog = log, $
+    zlog = log, $
     position = pos, $
     window = plot_window)
 
@@ -333,14 +315,14 @@ pro PlotEventsWindow::replot_event
 
   light_curve.SetData, jday, bp_low
   ;  light_curve.xrange = jday_range
-  ;  light_curve.yrange = bp_low_range
+  light_curve.yrange = bp_low_range
   light_curve.ylog = log
 
   ; Finally refresh and bring the window to the front.
   plot_window.refresh
   plot_window.setCurrent
 
-  self.spectrogram = ptr_new(spectrogram)
+  self.spectrogram = ptr_new(spect)
   self.diff_spect = ptr_new(diff_spect)
 end
 
@@ -367,6 +349,9 @@ pro PlotEventsWindow::update_spectra, spec0_index, force_update = force_update
   back_spec_array = *self.back_spec_array
   diff_spec_array = *self.diff_spec_array
   fit_array = *self.fit_array
+
+  ; Arbitrary cut off; typically channels below here have small/unreliable values.
+  low_channel_cut = 4
 
   if self.log then log = 1 else log = 0
 
@@ -396,9 +381,7 @@ pro PlotEventsWindow::update_spectra, spec0_index, force_update = force_update
   jday_range = [ jday[0], jday[eevt_len - 1] ]
   chan_range = [ chan_index[0], chan_index[num_chan - 1] ]
 
-  bp_min = min(bp_low[7:bp_low.length - 1])
-  bp_max = max(bp_low)
-  bp_low_range = [ bp_min, bp_max ]
+  bp_low_range = get_plot_range(bp_low, log)
 
   ; Show up to max_spec spectra.
   num_spec_to_show = min( [ max_spec, eevt_len - spec0_index ] )
@@ -428,19 +411,11 @@ pro PlotEventsWindow::update_spectra, spec0_index, force_update = force_update
     back_spec = reform(this_back_spec[i, *])
 
     ; Compute ranges for data.
-    spec_min = min( [this_evt_spec, back_spec ], max = spec_max)
-    spec_range = [ spec_min, spec_max ]
+    spec_range = get_plot_range(this_evt_spec, log, index_min = low_channel_cut)
+    back_range = get_plot_range(back_spec, log, index_min = low_channel_cut)
+    spec_range = [ min([ spec_range[0], back_range[0] ]), max([ spec_range[1], back_range[1] ]) ]
 
-    if log then begin
-      indices = where(this_diff_spec gt 0, /null)
-      diff_min = min(this_diff_spec[indices])
-      diff_max = max(this_diff_spec[indices])
-    endif else begin
-      diff_min = min(this_diff_spec)
-      diff_max = max(this_diff_spec)
-    endelse
-
-    diff_spec_range = [ diff_min, diff_max ]
+    diff_spec_range = get_plot_range(this_diff_spec, log, index_min = low_channel_cut)
 
     if i eq spec0_index then title = 'Spectrum' else title = ''
     if i eq specN_index then xtitle = 'Channel' else xtitle = ''
@@ -485,8 +460,8 @@ pro PlotEventsWindow::update_spectra, spec0_index, force_update = force_update
     ; Plot the fit line if it's available.
     if fit_valid then begin
       fit_plot.SetData, chan_index, amp * exp(chan_index / spectral_index)
-      ;      fit_plot.xrange = chan_range
-      ;      fit_plot.yrange = diff_spec_range
+      fit_plot.xrange = chan_range
+      fit_plot.yrange = diff_spec_range
     endif else begin
       ;      fit_plot.SetData, [ 0.0 ]
     endelse
