@@ -272,9 +272,11 @@ pro PlotEventsWindow::replot_event
   jday_range = [ jday[0], jday[eevt_len - 1] ]
   chan_range = [ chan_index[0], chan_index[num_chan - 1] ]
 
-  ;  alt_range = get_plot_range(alt, !false)
+  ;  if log then get_plot_range, alt, !null, alt_range $
+  ;  else get_plot_range, alt, alt_range, !null
 
-  bp_low_range = get_plot_range(bp_low, log)
+  if log then get_plot_range, bp_low, !null, bp_low_range $
+  else get_plot_range, bp_low, bp_low_range, !null
 
   title_plot.title = title
 
@@ -381,7 +383,8 @@ pro PlotEventsWindow::update_spectra, spec0_index, force_update = force_update
   jday_range = [ jday[0], jday[eevt_len - 1] ]
   chan_range = [ chan_index[0], chan_index[num_chan - 1] ]
 
-  bp_low_range = get_plot_range(bp_low, log)
+  if log then get_plot_range, bp_low, !null, bp_low_range $
+  else get_plot_range, bp_low, bp_low_range, !null
 
   ; Show up to max_spec spectra.
   num_spec_to_show = min( [ max_spec, eevt_len - spec0_index ] )
@@ -411,11 +414,16 @@ pro PlotEventsWindow::update_spectra, spec0_index, force_update = force_update
     back_spec = reform(this_back_spec[i, *])
 
     ; Compute ranges for data.
-    spec_range = get_plot_range(this_evt_spec, log, index_min = low_channel_cut)
-    back_range = get_plot_range(back_spec, log, index_min = low_channel_cut)
+    if log then begin
+      get_plot_range, this_evt_spec, !null, spec_range, index_min = low_channel_cut
+      get_plot_range, back_spec, !null, back_range, index_min = low_channel_cut
+      get_plot_range, this_diff_spec, !null, diff_spec_range, index_min = low_channel_cut
+    endif else begin
+      get_plot_range, this_evt_spec, spec_range, !null, index_min = low_channel_cut
+      get_plot_range, back_spec, back_range, !null, index_min = low_channel_cut
+      get_plot_range, this_diff_spec, diff_spec_range, !null, index_min = low_channel_cut
+    endelse
     spec_range = [ min([ spec_range[0], back_range[0] ]), max([ spec_range[1], back_range[1] ]) ]
-
-    diff_spec_range = get_plot_range(this_diff_spec, log, index_min = low_channel_cut)
 
     if i eq spec0_index then title = 'Spectrum' else title = ''
     if i eq specN_index then xtitle = 'Channel' else xtitle = ''

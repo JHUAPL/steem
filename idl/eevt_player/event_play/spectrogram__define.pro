@@ -22,7 +22,8 @@ function Spectrogram::init, z, x, y, $
 
   ct = colortable(13, ncolors = ncolors, /transpose)
 
-  zrange = get_plot_range(zz, zlog)
+  if zlog then get_plot_range, zz, !null, zrange $
+  else get_plot_range, zz, zrange, !null
 
   if nodata then begin
     levels = zrange
@@ -92,7 +93,9 @@ end
 pro Spectrogram::zlog, zlog
   if ptr_valid(self.contour) then begin
     contour = *self.contour
-    ;    if zlog then contour.zlog = 1 else contour.zlog = 0
+
+    contour.getData, z, x, y
+
   endif
 end
 
