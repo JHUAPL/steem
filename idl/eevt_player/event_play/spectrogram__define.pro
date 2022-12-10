@@ -22,8 +22,9 @@ function Spectrogram::init, z, x, y, $
 
   ct = colortable(13, ncolors = ncolors, /transpose)
 
-  if zlog then get_plot_range, zz, !null, zrange $
-  else get_plot_range, zz, zrange, !null
+  get_plot_range, zz, lin_zrange, log_zrange
+
+  if zlog then zrange = log_zrange else zrange = lin_zrange
 
   if nodata then begin
     levels = zrange
@@ -78,6 +79,11 @@ function Spectrogram::init, z, x, y, $
     endif
   endif
 
+  self.lin_zrange = ptr_new(lin_zrange)
+  self.log_zrange = ptr_new(log_zrange)
+  self.suppress_color_bar = suppress_color_bar
+  self.ncolors = ncolors
+
   return, 1
 end
 
@@ -92,10 +98,40 @@ end
 
 pro Spectrogram::zlog, zlog
   if ptr_valid(self.contour) then begin
-    contour = *self.contour
+    c = *self.contour
+    lin_zrange = *self.lin_zrange
+    log_zrange = *self.log_zrange
+    ncolors = self.ncolors
 
-    contour.getData, z, x, y
+    if zlog then zrange = log_zrange else zrange = lin_zrange
 
+    levels = self.get_levels(zrange, ncolors, zlog)
+    c.c_value = levels
+
+    if ptr_valid(self.colorbar) then begin
+      cb = *self.colorbar
+      cb.delete
+      self.colorbar = ptr_new()
+    endif
+
+    if not self.suppress_color_bar then begin
+      format = '%10.3g'
+      tickname = []
+      major_max = min([ 4, levels.length ])
+      current_index = -1
+      for i = 0, major_max - 1 do begin
+        index = fix(i * (levels.length - 1) / (major_max - 1))
+        if index ne current_index then begin
+          tickname = [ tickname, string(levels[index], format = format) ]
+          current_index = index
+        endif
+      endfor
+
+      no_taper = 0
+      if zlog then title = 'counts per second (log scale)' else title = 'counts per second (linear scale)'
+      cb = colorbar(target = c, title = title, major = tickname.length, tickname = tickname, taper = no_taper)
+      self.colorbar = ptr_new(cb)
+    endif
   endif
 end
 
@@ -178,6 +214,10 @@ pro Spectrogram__define
   !null = { $
     Spectrogram, $
     contour:ptr_new(), $
-    colorbar:ptr_new() $
+    colorbar:ptr_new(), $
+    lin_zrange:ptr_new(), $
+    log_zrange:ptr_new(), $
+    suppress_color_bar:!false, $
+    ncolors:0 $
   }
 end
