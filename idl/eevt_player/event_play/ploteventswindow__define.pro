@@ -244,10 +244,26 @@ function PlotEventsWindow::compute_yrange, this_plot, ylog, index_min = index_mi
   return, yrange
 end
 
+; It is the caller's responsibility to ensure that if ylog is true, the yrange
+; (if that parameter is specified) does not contain any negative values.
 pro PlotEventsWindow::set_range, this_plot, ylog, xrange = xrange, yrange = yrange
-  if keyword_set(xrange) then this_plot.xrange = xrange
-  if keyword_set(yrange) then this_plot.yrange = yrange
+  if this_plot.ylog then begin
+    ; This plot is currently set to log scale. In case the new
+    ; yrange contains negative numbers, first apply the log
+    ; scale change, then change the ranges.
+    this_plot.ylog = ylog
+    if keyword_set(xrange) then this_plot.xrange = xrange
+    if keyword_set(yrange) then this_plot.yrange = yrange
+  endif else begin
+    ; This plot is currently set to linear scale. In case the new
+    ; ylog is true, first apply the range changes, then change the
+    ; scale.
+    if keyword_set(xrange) then this_plot.xrange = xrange
+    if keyword_set(yrange) then this_plot.yrange = yrange
+    this_plot.ylog = ylog
+  endelse
 
+  ; Now change the state of this plot's log setting.
   this_plot.ylog = ylog
 
   if not ylog then begin
@@ -255,11 +271,12 @@ pro PlotEventsWindow::set_range, this_plot, ylog, xrange = xrange, yrange = yran
     ; the log settings, those changes do affect the axis (not a bug). Also the
     ; changes do move the displayed data to be in the right spot on the
     ; rescaled plot (also not a bug). BUT, when going from log to linear, any
-    ; negative values (which were not plotted with log scaling) do NOT show up
-    ; unless the data appear to change.
+    ; negative values (which were not visible with log scaling) do NOT show up
+    ; unless the data appear to change. Hence this apparent no-op of getting
+    ; the data and setting it again.
     ;
     ; Note: it does NOT work just to refresh the plot window. Tried lots
-    ; of other things first. This was the first (and as far as I know only)
+    ; of other things first. This was the first (and as far we can tell) only
     ; thing that worked.
     this_plot.getData, x, y
     this_plot.setData, x, y
@@ -489,17 +506,15 @@ pro PlotEventsWindow::update_spectra, spec0_index, force_update = force_update
     back_spec_plot.yrange = spec_range
     back_spec_plot.ylog = log
 
-    ; Unpack fit parameters if they are available.
-    if ptr_valid(self.fit_param) then begin
+    fit_valid = self.is_fit_valid(i)
+    if fit_valid then begin
       fit_param = *self.fit_param
       amp = fit_param[i, 0]
       spectral_index = fit_param[i, 1]
-      fit_valid = finite(amp) and finite(spectral_index)
-    endif else begin
-      fit_valid = !false
-    endelse
+    endif
 
     if fit_valid then param_label = String(format = ', SI = %0.2f', spectral_index) else param_label = ''
+
     title = string(format = 'alt = %d', alt[i]) + param_label
 
     if i eq spec0_index then title = 'Diff spec, ' + title
@@ -518,29 +533,60 @@ pro PlotEventsWindow::update_spectra, spec0_index, force_update = force_update
       fit_plot.SetData, chan_index, amp * exp(chan_index / spectral_index)
       fit_plot.xrange = chan_range
       fit_plot.yrange = diff_spec_range
-    endif else begin
-      ;      fit_plot.SetData, [ 0.0 ]
-    endelse
+    endif
     fit_plot.ylog = log
 
   endfor
 
   ; Hide plots that would be empty or contain stale data.
-  for i = 0, max_spec - 1 do begin
-    if i lt num_spec_to_show then hide = 0 else hide = 1
+  hide = 1
+  show = 0
+  for i_array = 0, max_spec - 1 do begin
+    if i_array lt num_spec_to_show then begin
+      ; Data were associated with this index above, so
+      ; show the spectrum, background spectrum and
+      ; differential spectrum for sure.
+      spec_array[i_array].hide = show
+      back_spec_array[i_array].hide = show
+      diff_spec_array[i_array].hide = show
 
-    spec_array[i].hide = hide
-    back_spec_array[i].hide = hide
-    diff_spec_array[i].hide = hide
+      i = i_array + spec0_index
+      ; Plot containing fit line should be shown if the
+      ; fit parameters are valid, hidden otherwise.
+      if self.is_fit_valid(i) then fit_array[i_array].hide = show $
+      else fit_array[i_array].hide = hide
 
-    ; If no fit available, don't display even if displaying the other plots.
-    if not fit_valid then fit_array[i].hide = 1 $
-    else fit_array[i].hide = hide
+    endif else begin
+      ; No data were associated with this index above, so
+      ; hide all plots associated with this index.
+      spec_array[i_array].hide = hide
+      back_spec_array[i_array].hide = hide
+      diff_spec_array[i_array].hide = hide
+      fit_array[i_array].hide = hide
+    endelse
+
   endfor
 
   ; Finally refresh and bring the window to the front.
   plot_window.refresh
   plot_window.setCurrent
+end
+
+function PlotEventsWindow::is_fit_valid, index
+  ; Unpack fit parameters if they are available.
+  if ptr_valid(self.fit_param) then begin
+    fit_param = *self.fit_param
+
+    amp = fit_param[index, 0]
+    spectral_index = fit_param[index, 1]
+    scale_factor = fit_param[index, 2]
+
+    fit_valid = finite(amp) and finite(spectral_index) and finite(scale_factor)
+  endif else begin
+    fit_valid = !false
+  endelse
+
+  return, fit_valid
 end
 
 function PlotEventsWindow::KeyHandler, window, isASCII, character, keyvalue, x, y, press, release, keymode
