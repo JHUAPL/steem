@@ -210,13 +210,71 @@ pro PlotEventsWindow::update_log, log
   highlights.ylog = log
 
   for i = 0, spec_array.length - 1 do begin
-    spec_array[i].ylog = log
-    back_spec_array[i].ylog = log
-    diff_spec_array[i].ylog = log
-    fit_array[i].ylog = log
+    spec_range = self.compute_yrange(spec_array[i], log, index_min = low_channel_cut)
+    back_range = self.compute_yrange(back_spec_array[i], log, index_min = low_channel_cut)
+    spec_range = [ min([ spec_range[0], back_range[0] ]), max([ spec_range[1], back_range[1] ]) ]
+
+    diff_spec_range = self.compute_yrange(diff_spec_array[i], log, index_min = low_channel_cut)
+
+    self.set_range, spec_array[i], log, yrange = spec_range
+
+    self.set_range, back_spec_array[i], log, yrange = spec_range
+
+    self.set_range, diff_spec_array[i], log, yrange = diff_spec_range
+
+    if not fit_array[i].hide then begin
+      self.set_range, fit_array[i], log, yrange = diff_spec_range
+    endif
   endfor
 
   plot_window.refresh
+end
+
+function PlotEventsWindow::compute_yrange, this_plot, ylog, index_min = index_min, index_max = index_max
+  this_plot.getData, x, y
+
+  get_plot_range, y, lin_yrange, log_yrange, index_min = index_min, index_max = index_max
+
+  if ylog then yrange = log_yrange $
+  else yrange = lin_yrange
+
+  return, yrange
+end
+
+pro PlotEventsWindow::set_range, this_plot, ylog, xrange = xrange, yrange = yrange
+
+  if not ylog then begin
+    ; There seems to be a bug in IDL. If one just sets a range, and/or toggles
+    ; the log settings, those changes do affect the axis (not a bug). Also the
+    ; change does move the displayed data to be in the right spot on the
+    ; rescaled plot (also not a bug). BUT, when going from log to linear, any
+    ; negative values do NOT show up unless the data actually change. This hack
+    ; sets the data to be just the end points of the range. Then at the end, the
+    ; true data are restored.
+    ;
+    ; Note: it does NOT work just to refresh the plot window. Tried lots
+    ; of other things first, like refreshing the window, calling setData
+    ; without actually changing the data, etc. This was the first (and
+    ; only as far as I know) thing that worked.
+    if not keyword_set(xrange) then xrange = this_plot.xrange
+    if not keyword_set(yrange) then yrange = this_plot.yrange
+
+    this_plot.getData, x, y
+    this_plot.setData, xrange, yrange
+
+    this_plot.xrange = xrange
+    this_plot.yrange = yrange
+    this_plot.ylog = ylog
+
+    ; Here's where we undo the hack explained above.
+    this_plot.setData, x, y
+  endif else begin
+    ; Without the bug, this is all that is/should be necessary.
+    if keyword_set(xrange) then this_plot.xrange = xrange
+    if keyword_set(yrange) then this_plot.yrange = yrange
+    this_plot.ylog = ylog
+  endelse
+
 end
 
 pro PlotEventsWindow::update_event, jday, chan_index, $
