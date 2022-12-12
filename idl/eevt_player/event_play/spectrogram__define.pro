@@ -22,17 +22,6 @@ function Spectrogram::init, z, x, y, $
 
   ct = colortable(13, ncolors = ncolors, /transpose)
 
-  ;  if nodata then begin
-  ;    levels = zrange
-  ;
-  ;    c = contour(zz, xx, yy, /fill, /current, /nodata, $
-  ;      c_color = ct, n_levels = ncolors, $
-  ;      xtickformat = xtickformat, xtickunits = xtickunits, $
-  ;      title = title, xmajor = 3, $
-  ;      position = position, $
-  ;      window = window $
-  ;      )
-  ;  endif else begin
   if not nodata then begin
     xdata_size = size(xx)
     xrange = [ xx[0], xx[xdata_size[1] - 1] ]

@@ -337,50 +337,15 @@ pro PlotEventsWindow::replot_event
   jday_range = [ jday[0], jday[eevt_len - 1] ]
   chan_range = [ chan_index[0], chan_index[num_chan - 1] ]
 
-  ;  if log then get_plot_range, alt, !null, alt_range $
-  ;  else get_plot_range, alt, alt_range, !null
-
   if log then get_plot_range, bp_low, !null, bp_low_range $
   else get_plot_range, bp_low, bp_low_range, !null
 
   title_plot.title = title
 
-  ; For the spectrograms, at first tried similar approach as for the individual
-  ; spectra: kept the initial spectrogram and just updated the data. But this
-  ; did not work -- the colorbar and/or Z axis range did not update correctly.
-  ; Falling back on deleting the old plot and creating a new one each time.
-
-  ;  ; Get position of previous spectrogram, then delete it.
-  ;  pos = spect.position()
-  ;  spect.delete
-  ;
-  ;  ; Create new spectrogram plot, in same position as previous plot.
-  ;  spect = obj_new('Spectrogram', bp_low_spec, jday, chan_index, $
-  ;    xrange = jday_range, yrange = chan_range, $
-  ;    xtickformat = time_format, xtickunits = time_units, $
-  ;    zlog = log, $
-  ;    position = pos, $
-  ;    window = plot_window)
-  ;
-  ;  ; Get position of previous differential spectrogram, then delete it.
-  ;  pos = diff_spect.position()
-  ;  diff_spect.delete
-  ;
-  ;  ; Create new differential spectrogram plot, in same position as previous plot.
-  ;  diff_spect = obj_new('Spectrogram', bp_diff_spec, jday[0:eevt_len - 1], chan_index, $
-  ;    xrange = jday_range, yrange = chan_range, $
-  ;    xtickformat = time_format, xtickunits = time_units, $
-  ;    zlog = log, $
-  ;    position = pos, $
-  ;    window = plot_window)
   spect.setData, bp_low_spec, jday[0:eevt_len - 1], chan_index, zlog = log
   diff_spect.setData, bp_diff_spec, jday[0:eevt_len - 1], chan_index, zlog = log
 
   altitude.SetData, jday, alt
-  ;  altitude.xrange = jday_range
-  ;  altitude.yrange = alt_range
-  ; Keep altitude linear even in log mode.
-  ; altitude.ylog = log
 
   light_curve.SetData, jday, bp_low
   ;  light_curve.xrange = jday_range
