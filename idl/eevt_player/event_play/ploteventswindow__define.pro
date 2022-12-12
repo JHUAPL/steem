@@ -82,7 +82,7 @@ function PlotEventsWindow::init, controller, window_settings = window_settings
   spectrogram = obj_new('Spectrogram', dummy_array2d, dummy_array1d, dummy_array1d, $
     xtickformat = time_format, xtickunits = time_units, $
     nodata = !true, $
-    suppress_color_bar = !true, $
+    ;    suppress_color_bar = !true, $
     position = pos, $
     window = plot_window)
   row_index += lines_for_spec
@@ -91,7 +91,7 @@ function PlotEventsWindow::init, controller, window_settings = window_settings
   diff_spect = obj_new('Spectrogram', dummy_array2d, dummy_array1d, dummy_array1d, $
     xtickformat = time_format, xtickunits = time_units, $
     nodata = !true, $
-    suppress_color_bar = !true, $
+    ;    suppress_color_bar = !true, $
     position = pos, $
     window = plot_window)
   row_index += lines_for_diff_spec
@@ -350,29 +350,31 @@ pro PlotEventsWindow::replot_event
   ; did not work -- the colorbar and/or Z axis range did not update correctly.
   ; Falling back on deleting the old plot and creating a new one each time.
 
-  ; Get position of previous spectrogram, then delete it.
-  pos = spect.position()
-  spect.delete
-
-  ; Create new spectrogram plot, in same position as previous plot.
-  spect = obj_new('Spectrogram', bp_low_spec, jday, chan_index, $
-    xrange = jday_range, yrange = chan_range, $
-    xtickformat = time_format, xtickunits = time_units, $
-    zlog = log, $
-    position = pos, $
-    window = plot_window)
-
-  ; Get position of previous differential spectrogram, then delete it.
-  pos = diff_spect.position()
-  diff_spect.delete
-
-  ; Create new differential spectrogram plot, in same position as previous plot.
-  diff_spect = obj_new('Spectrogram', bp_diff_spec, jday[0:eevt_len - 1], chan_index, $
-    xrange = jday_range, yrange = chan_range, $
-    xtickformat = time_format, xtickunits = time_units, $
-    zlog = log, $
-    position = pos, $
-    window = plot_window)
+  ;  ; Get position of previous spectrogram, then delete it.
+  ;  pos = spect.position()
+  ;  spect.delete
+  ;
+  ;  ; Create new spectrogram plot, in same position as previous plot.
+  ;  spect = obj_new('Spectrogram', bp_low_spec, jday, chan_index, $
+  ;    xrange = jday_range, yrange = chan_range, $
+  ;    xtickformat = time_format, xtickunits = time_units, $
+  ;    zlog = log, $
+  ;    position = pos, $
+  ;    window = plot_window)
+  ;
+  ;  ; Get position of previous differential spectrogram, then delete it.
+  ;  pos = diff_spect.position()
+  ;  diff_spect.delete
+  ;
+  ;  ; Create new differential spectrogram plot, in same position as previous plot.
+  ;  diff_spect = obj_new('Spectrogram', bp_diff_spec, jday[0:eevt_len - 1], chan_index, $
+  ;    xrange = jday_range, yrange = chan_range, $
+  ;    xtickformat = time_format, xtickunits = time_units, $
+  ;    zlog = log, $
+  ;    position = pos, $
+  ;    window = plot_window)
+  spect.setData, bp_low_spec, jday[0:eevt_len - 1], chan_index, zlog = log
+  diff_spect.setData, bp_diff_spec, jday[0:eevt_len - 1], chan_index, zlog = log
 
   altitude.SetData, jday, alt
   ;  altitude.xrange = jday_range

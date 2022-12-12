@@ -22,39 +22,41 @@ function Spectrogram::init, z, x, y, $
 
   ct = colortable(13, ncolors = ncolors, /transpose)
 
-  get_plot_range, zz, lin_zrange, log_zrange
-
-  if zlog then zrange = log_zrange else zrange = lin_zrange
-
-  if nodata then begin
-    levels = zrange
-
-    c = contour(zz, xx, yy, /fill, /current, /nodata, $
-      c_color = ct, n_levels = ncolors, $
-      xtickformat = xtickformat, xtickunits = xtickunits, $
-      title = title, xmajor = 3, $
-      position = position, $
-      window = window $
-      )
-  endif else begin
+  ;  if nodata then begin
+  ;    levels = zrange
+  ;
+  ;    c = contour(zz, xx, yy, /fill, /current, /nodata, $
+  ;      c_color = ct, n_levels = ncolors, $
+  ;      xtickformat = xtickformat, xtickunits = xtickunits, $
+  ;      title = title, xmajor = 3, $
+  ;      position = position, $
+  ;      window = window $
+  ;      )
+  ;  endif else begin
+  if not nodata then begin
     xdata_size = size(xx)
     xrange = [ xx[0], xx[xdata_size[1] - 1] ]
 
     ydata_size = size(yy)
     yrange = [ yy[0], yy[ydata_size[1] - 1] ]
 
-    levels = self.get_levels(zrange, ncolors, zlog)
+    get_plot_range, zz, lin_zrange, log_zrange
 
-    c = contour(zz, xx, yy, /fill, /current, $
-      xrange = xrange, yrange = yrange, $
-      zrange = zrange, zstyle = exact, $
-      c_color = ct, c_value = levels, $
-      xtickformat = xtickformat, xtickunits = xtickunits, $
-      title = title, xmajor = 3, $
-      position = position, $
-      window = window $
-      )
-  endelse
+    if zlog then zrange = log_zrange else zrange = lin_zrange
+
+    levels = self.get_levels(zrange, ncolors, zlog)
+  endif
+
+  c = contour(zz, xx, yy, /fill, /current, $
+    xrange = xrange, yrange = yrange, $
+    zrange = zrange, zstyle = exact, $
+    c_color = ct, c_value = levels, $
+    xtickformat = xtickformat, xtickunits = xtickunits, $
+    title = title, xmajor = 3, $
+    position = position, $
+    window = window $
+    )
+  ;  endelse
 
   self.contour = ptr_new(c)
 
@@ -132,6 +134,37 @@ pro Spectrogram::zlog, zlog
       cb = colorbar(target = c, title = title, major = tickname.length, tickname = tickname, taper = no_taper)
       self.colorbar = ptr_new(cb)
     endif
+  endif
+end
+
+pro Spectrogram::setData, z, x, y, zlog = zlog
+  if ptr_valid(self.contour) then begin
+    c = *self.contour
+    if not keyword_set(zlog) then zlog = c.zlog
+
+    xx = x
+    yy = y
+    zz = z
+
+    get_plot_range, zz, lin_zrange, log_zrange
+
+    if zlog then zrange = log_zrange else zrange = lin_zrange
+
+    xdata_size = size(xx)
+    xrange = [ xx[0], xx[xdata_size[1] - 1] ]
+
+    ydata_size = size(yy)
+    yrange = [ yy[0], yy[ydata_size[1] - 1] ]
+
+    c.setData, zz, xx, yy
+    c.xrange = xrange
+    c.yrange = yrange
+    c.zrange = zrange
+
+    self.log_zrange = ptr_new(log_zrange)
+    self.lin_zrange = ptr_new(lin_zrange)
+
+    self.zlog, zlog
   endif
 end
 
