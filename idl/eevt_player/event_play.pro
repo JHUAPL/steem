@@ -5,7 +5,7 @@
 ; Edit these as needed. Dir should point to the directory where you have the data.
 top_dir = '/Users/peachjm1/jhuapl/messenger-2022/'
 dir = top_dir + 'working/input/'
-load, dir, eevt, vals, eevt_ids = eevt_ids
+load, dir, eevt, vals, eevt_ids
 
 ; This is just a dummy value to go with 'parameter' below. This is just so the
 ; dictionary always has at least one thing in it. There is no field in the data

@@ -1,4 +1,4 @@
-pro load, dir, eevt_out, vals_out, eevt_ids = eevt_ids
+pro load, dir, eevt_out, vals_out, eevt_ids
 
   ; Detailed data "eevt".
   fname = 'ele_evt_12hr_orbit_2011-2012.idl'
