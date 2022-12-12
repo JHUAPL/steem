@@ -342,8 +342,18 @@ pro PlotEventsWindow::replot_event
 
   title_plot.title = title
 
+  catch, error_status
+  if error_status ne 0 then begin
+    print, string(format = 'Unable to display spectrogram for %s', title)
+    print, !error_state.msg
+    catch, /cancel
+    goto, line_plots
+  endif
+
   spect.setData, bp_low_spec, jday[0:eevt_len - 1], chan_index, zlog = log
   diff_spect.setData, bp_diff_spec, jday[0:eevt_len - 1], chan_index, zlog = log
+
+  line_plots:
 
   altitude.SetData, jday, alt
 
