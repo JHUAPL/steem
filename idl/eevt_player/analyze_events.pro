@@ -17,46 +17,28 @@
 ; events to be viewed in greater detail.
 ;
 ; Parameters:
-;     data_dir path to the top directory that contains the input
-;         data sets, which are stored in a hierarchy in IDL save-file format.
-pro analyze_events, data_dir
+;*******************************************************************************
+;     data_dir path to the top directory that contains the input data
+;         sets, which are stored in a hierarchy in IDL save-file format
+;
+;     filters_file path to an optional file that contains filters to
+;         apply to the data set while loading it
+pro analyze_events, data_dir, filters_file = filters_file
   if data_dir eq !null then begin
     message, 'pass this procedure the directory path in which input data files are located'
   endif else if not file_test(data_dir, /directory) then begin
     message, string(format = 'data directory ''%s'' does not exist', data_dir)
   endif
 
-  ; Ensure the directory ends with a path delimiter.
-  ps = path_sep()
-  if strmid(data_dir, 0, ps.length, /reverse_offset) ne ps then data_dir += ps
-
   load, data_dir, eevt, vals, eevt_ids
 
-  ; This is purely for ease of use while hand-editing the call to the
-  ; select procedure below. Including a dummy key-value pair in all filtering
-  ; dictionaries (see below), makes it convenient to comment/uncomment lines
-  ; with the various filtering criteria. If the tool were made to read in such
-  ; filtering dictionaries, these dummy variables would be unnecessary.
-  dummy_key = 'dummy'
-  dummy_value = -1
+  if keyword_set(filters_file) then begin
+    load_filters, filters_file, lls, uls
+  endif
 
-  ; Edit this next block as desired to filter the events in different ways.
-  ; lls is short for "lower limits". This specifies minimum value cuts -- only
-  ; events where the specified parameter meets or exceeds the specified threshold
-  ; will be kept. Similarly, uls is "upper limits", which are maximum value cuts.
-  ;
-  ; You can include as many distinct data field names in these filter dictionaries
-  ; as you like. The select function will look for them first in the eevt structures
-  ; then in the vals structures if it doesn't find them in eevt.
-  select, eevt, vals, eevt_ids $
-    ;  , smoothness = 'bursty' $ ;, i_norm = 0.38, sigma_fr = 0.8 $
-    , lls = dictionary( dummy_key, dummy_value $
-    , 'max_sn', 200.0 $
-    , 'evt_length', 20 $
-    ) $
-    , uls = dictionary( dummy_key, dummy_value $
-    , 'alt', 1500.0 $
-    )
+  select, eevt, vals, eevt_ids, lls = lls, uls = uls
+  ;  select, eevt, vals, eevt_ids, lls = lls, uls = uls $
+  ;  , smoothness = 'bursty' $ ;, i_norm = 0.38, sigma_fr = 0.8 $
 
   ; Compute the fit parameters for all the spectra, returning them in an array
   ; of size N, where N is the number of selected events in eevt_ids. Each event
