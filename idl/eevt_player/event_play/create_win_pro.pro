@@ -1,4 +1,4 @@
-function create_win_pro, win_index, title = title
+function create_win, win_index, title = title
 
   get_window_pos, win_index, x, y
 

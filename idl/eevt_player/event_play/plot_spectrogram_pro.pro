@@ -1,4 +1,4 @@
-function plot_spectrogram_pro, z, x, y, $
+function plot_spectrogram, z, x, y, $
   xrange = xrange, xstyle = xstyle, $
   yrange = yrange, ystyle = ystyle, $
   xticks = xticks, xminor = xminor, $

@@ -1,4 +1,4 @@
-pro plot_events_pro, eevt, vals, eevt_ids, zrange = zrange
+pro plot_events, eevt, vals, eevt_ids, zrange = zrange
 
   common draw_colors, fg_color, accent_color
 
@@ -79,7 +79,7 @@ pro plot_events_pro, eevt, vals, eevt_ids, zrange = zrange
 
   title = string(FORMAT = "E.E. Events %d", win_index)
 
-  !null = create_win_pro(win_index, title = title)
+  !null = create_win(win_index, title = title)
 
   show_instructions
 
@@ -159,7 +159,7 @@ pro plot_events_pro, eevt, vals, eevt_ids, zrange = zrange
 
       spec_to_plot = bp_low_spec
 
-      !null = color_bar_pro(spec_to_plot, zrange = zrange, zlog = spec_log, xtitle = 'Spectrogram (c/s)', position = pos)
+      !null = create_color_bar(spec_to_plot, zrange = zrange, zlog = spec_log, xtitle = 'Spectrogram (c/s)', position = pos)
 
       ++row_index
 
@@ -169,7 +169,7 @@ pro plot_events_pro, eevt, vals, eevt_ids, zrange = zrange
       xrange = jday_range
       yrange = chan_range
 
-      !null = plot_spectrogram_pro(spec_to_plot, jday[0:eevt_len - 1], chan_index, $
+      !null = plot_spectrogram(spec_to_plot, jday[0:eevt_len - 1], chan_index, $
         xrange = xrange, xstyle = exact, yrange = yrange, ystyle = exact, $
         zrange = zrange, zlog = spec_log, $
         xtickformat = xformat, xtickunits = xtickunits, xticks = 5, $
@@ -184,7 +184,7 @@ pro plot_events_pro, eevt, vals, eevt_ids, zrange = zrange
       ;      spec_to_plot = bp_low_spec
       spec_to_plot = diff_spec
 
-      !null = color_bar_pro(spec_to_plot, zrange = zrange, zlog = spec_log, xtitle = 'Differential spectrogram (c/s)', position = pos)
+      !null = create_color_bar(spec_to_plot, zrange = zrange, zlog = spec_log, xtitle = 'Differential spectrogram (c/s)', position = pos)
 
       ++row_index
 
@@ -194,7 +194,7 @@ pro plot_events_pro, eevt, vals, eevt_ids, zrange = zrange
       xrange = jday_range
       yrange = chan_range
 
-      !null = plot_spectrogram_pro(spec_to_plot, jday[0:eevt_len - 1], chan_index, $
+      !null = plot_spectrogram(spec_to_plot, jday[0:eevt_len - 1], chan_index, $
         xrange = xrange, xstyle = exact, yrange = yrange, ystyle = exact, $
         zrange = zrange, zlog = spec_log, $
         xtickformat = xformat, xtickunits = xtickunits, xticks = 5, $
@@ -375,7 +375,7 @@ pro plot_events_pro, eevt, vals, eevt_ids, zrange = zrange
 
       title = string(format = "E.E. Events %d", win_index)
 
-      !null = create_win_pro(win_index, title = title)
+      !null = create_win(win_index, title = title)
 
     endif
 
