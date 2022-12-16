@@ -1,5 +1,9 @@
 pro load, dir, eevt_out, vals_out, eevt_ids = eevt_ids
 
+  ; Ensure the directory ends with a path delimiter.
+  ps = path_sep()
+  if strmid(dir, ps.length - 1, ps.length, /reverse_offset) ne ps then dir += ps
+
   ; Detailed data "eevt".
   fname = 'ele_evt_12hr_orbit_2011-2012.idl'
   restore, dir+fname
