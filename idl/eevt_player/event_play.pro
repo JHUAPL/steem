@@ -50,6 +50,6 @@ window_settings = obj_new('WindowSettings', ysize = 2138* 14 / 15, max_spec = 5)
 ;zrange = [ zmin, zmax ]
 
 ; Creates the direct graphics plotter app.
-plot_events_pro, eevt, vals, eevt_ids, zrange = zrange
+plot_events, eevt, vals, eevt_ids, zrange = zrange
 
 end
