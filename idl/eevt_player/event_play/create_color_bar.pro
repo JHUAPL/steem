@@ -1,4 +1,4 @@
-function color_bar_pro, data, $
+function create_color_bar, data, $
   xtitle = xtitle, $
   nlevels = nlevels, $
   zrange = zrange, $
@@ -28,7 +28,7 @@ function color_bar_pro, data, $
   extend = 2
   no_axis = 4
 
-  return, plot_spectrogram_pro(z, x, y, $
+  return, plot_spectrogram(z, x, y, $
     xrange = xrange, xstyle = exact, yrange = yrange, ystyle = no_axis, $
     xticks = 5, $
     yticks = 1, yminor = 1, $
