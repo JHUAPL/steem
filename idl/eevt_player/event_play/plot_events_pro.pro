@@ -271,16 +271,19 @@ pro plot_events_pro, eevt, vals, eevt_ids, zrange = zrange
 
         param_valid = finite(param[0]) and finite(param[1])
 
-        exp_fac = this_eevt[i].eevt.exp_fac
-        if param_valid then begin
-          if this_eevt[i].eevt.exp_fac ne param[1] then begin
-            print, 'Discrepancy in fit spectral index: ', this_eevt[i].eevt.exp_fac, ' ne ', param[1]
-          endif
-        endif else begin
-          if this_eevt[i].eevt.exp_fac ne !values.d_nan then begin
-            print, 'Discrepancy in fit spectral index: ', this_eevt[i].eevt.exp_fac, ' ne nan'
-          endif
-        endelse
+        ; This commented out block has the look of debugging code: evidently there
+        ; is or was some difference between what fit_spectra got and what the same
+        ; fit process gets here. They are really close though.
+        ;        exp_fac = this_eevt[i].eevt.exp_fac
+        ;        if param_valid then begin
+        ;          if this_eevt[i].eevt.exp_fac ne param[1] then begin
+        ;            print, 'Discrepancy in fit spectral index: ', this_eevt[i].eevt.exp_fac, ' ne ', param[1]
+        ;          endif
+        ;        endif else begin
+        ;          if this_eevt[i].eevt.exp_fac ne !values.d_nan then begin
+        ;            print, 'Discrepancy in fit spectral index: ', this_eevt[i].eevt.exp_fac, ' ne nan'
+        ;          endif
+        ;        endelse
 
         if param_valid then param_label = String(format = ' SI = %0.2f', param[1]) else param_label = ''
 
@@ -340,13 +343,6 @@ pro plot_events_pro, eevt, vals, eevt_ids, zrange = zrange
         endif else if r eq 'k' or r eq 'K' then begin
           print, format = 'Keeping event %s in window %d', eevt_id, win_index
           create_new_win = !true
-        endif else if r eq 's' or r eq 'S' then begin
-          xrange = jday_range
-          yrange = chan_range
-          !null = plot_spectrogram(bp_low_spec, jday[0:eevt_len - 1], chan_index, $
-            xrange = xrange, yrange = yrange, $
-            xtickformat = xformat, xtickunits = xtickunits, $
-            title = 'Event ' + eevt_id)
         endif else if not replot then show_instructions
 
       endrep until replot

@@ -54,10 +54,6 @@ pro AnalyzeEventsController::show_spectra, selected_ids
   eevt_ids = eevt_ids[indices]
   fit_params = fit_params[indices]
 
-  ;zmax = max(eevt.eevt.bp_low_spec, /nan, min = zmin)
-  ;zrange = [ zmin, zmax ]
-
-  ; plot_events_pro, eevt, vals, eevt_ids, zrange = zrange
   controller = obj_new('PlotEventsController', eevt, vals, eevt_ids, fit_params, $
     window_settings = window_settings)
 
