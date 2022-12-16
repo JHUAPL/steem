@@ -340,13 +340,6 @@ pro plot_events_pro, eevt, vals, eevt_ids, zrange = zrange
         endif else if r eq 'k' or r eq 'K' then begin
           print, format = 'Keeping event %s in window %d', eevt_id, win_index
           create_new_win = !true
-        endif else if r eq 's' or r eq 'S' then begin
-          xrange = jday_range
-          yrange = chan_range
-          !null = plot_spectrogram(bp_low_spec, jday[0:eevt_len - 1], chan_index, $
-            xrange = xrange, yrange = yrange, $
-            xtickformat = xformat, xtickunits = xtickunits, $
-            title = 'Event ' + eevt_id)
         endif else if not replot then show_instructions
 
       endrep until replot
