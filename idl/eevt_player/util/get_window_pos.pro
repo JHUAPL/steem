@@ -3,24 +3,19 @@ pro get_window_pos, win_index, x, y
   window_settings = obj_new('WindowSettings')
   xsize = window_settings.xsize()
   ysize = window_settings.ysize()
-  switch_display = window_settings.switch_display()
-
-  if switch_display then mon_index = 0 else mon_index = 1
+  display_id = window_settings.get_display_id()
 
   oInfo = obj_new('IDLsysMonitorInfo')
-  num_mons = oInfo->GetNumberOfMonitors()
-  if mon_index lt 0 then mon_index = 0
-  if mon_index ge num_mons then mon_index = num_mons - 1
 
   rects = oInfo->GetRectangles()
 
   ; Get monitor characteristics.
-  x_min = rects[0, mon_index]
-  mon_width = rects[2, mon_index]
+  x_min = rects[0, display_id]
+  mon_width = rects[2, display_id]
   x_max = x_min + mon_width
 
-  y_min = rects[1, mon_index]
-  mon_height = rects[3, mon_index]
+  y_min = rects[1, display_id]
+  mon_height = rects[3, display_id]
   y_max = y_min + mon_height
 
   ; Slim down requested plot size to fit the monitor if necessary.

@@ -191,7 +191,6 @@ pro GlobalPropertyDisplay::display, eevt, vals, eevt_ids, $
   window_settings = obj_new('WindowSettings')
   xsize = window_settings.xsize()
   ysize = window_settings.ysize()
-  max_spec_per_step = window_settings.max_spec()
 
   xunit = 9.0 / xsize
   yunit = 8.0 / ysize

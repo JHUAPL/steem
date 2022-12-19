@@ -231,8 +231,10 @@ pro plot_events, eevt, vals, eevt_ids, zrange = zrange
       axis, yaxis = 0, ytitle = 'BP low', color = fg_color
 
       ; Highlight the points whose spectra will be shown.
+      ;      if spec0_index le specN_index then begin
       plots, jday[spec0_index:specN_index], bp_low[spec0_index:specN_index], $
         psym = square, symsize = 4, color = accent_color
+      ;      endif
 
       ++row_index
 

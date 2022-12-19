@@ -32,17 +32,7 @@ select, eevt, vals, eevt_ids $
 
 !null = fit_spectra(eevt, vals, eevt_ids)
 
-; Uncomment one of these to get the right settings for your monitor. If plots
-; are appearing on the wrong monitor, add or toggle the parameter
-; switch_display = !true and it should swap which monitor it uses. max_spec
-; controls how many spectra you can see at a time.
-;
-; Small display.
-;window_settings = obj_new('WindowSettings')
-; Medium display.
-;window_settings = obj_new('WindowSettings', ysize = 1418 * 9 / 10, max_spec = 3)
-; Large display.
-window_settings = obj_new('WindowSettings', ysize = 2138* 14 / 15, max_spec = 5)
+window_settings = obj_new('WindowSettings', 2, 3)
 
 ; Uncomment these two lines to make all the spectrograms have the same color bar,
 ; covering as wide a range as necessary to show all the events.

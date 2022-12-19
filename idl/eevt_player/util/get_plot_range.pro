@@ -32,11 +32,11 @@ pro get_plot_range, array, lin_range, log_range, index_min = index_min, index_ma
   if not keyword_set(index_max) then index_max = array.length - 1 $
   else if index_max ge array.length then index_max = array.length - 1
 
-  lin_min = 0.0
-  lin_max = 0.0
+  lin_min = !values.d_nan
+  lin_max = !values.d_nan
 
-  log_min = 1.0
-  log_max = 1.0
+  log_min = !values.d_nan
+  log_max = !values.d_nan
 
   for i = index_min, index_max do begin
 
@@ -44,19 +44,26 @@ pro get_plot_range, array, lin_range, log_range, index_min = index_min, index_ma
 
     if finite(value) then begin
 
-      if lin_min gt value then lin_min = value
-      if lin_max lt value then lin_max = value
+      if not finite(lin_min) or lin_min gt value then lin_min = value
+      if not finite(lin_max) or lin_max lt value then lin_max = value
 
       if value gt 0.0 then begin
 
-        if log_min gt value then log_min = value
-        if log_max lt value then log_max = value
+        if not finite(log_min) or log_min gt value then log_min = value
+        if not finite(log_max) or log_max lt value then log_max = value
 
       endif
 
     endif
 
   endfor
+
+  if not finite(lin_min) then lin_min = 0.0
+  if not finite(lin_max) then lin_max = lin_min
+
+  if not finite(log_min) then log_min = 1.0
+  if not finite(log_max) then log_max = log_min
+
   ; Invariants at this point:
   ;   lin_min <= lin_max
   ;   0.0 < log_min <= log_max

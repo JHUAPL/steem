@@ -7,8 +7,7 @@
 ; Sample usages:
 ;
 ;   settings = obj_new('WindowSettings')
-;   settings = obj_new('WindowSettings', ysize = 1200, max_spec = 3)
-;   settings = obj_new('WindowSettings', switch_display = !true)
+;   settings = obj_new('WindowSettings', display_id = 1, max_spec = 3)
 ;-------------------------------------------------------------------------------
 
 ;-------------------------------------------------------------------------------
@@ -16,59 +15,40 @@
 ; taken from the prototype instance.
 ;
 ; If there is no prototype already defined, (i.e. the first time a window
-; settings object is instantiated), missing keyword values are set as follows:
+; settings object is instantiated), missing arguments are set as follows:
 ;
-; xsize = 1280, ysize = 900, switch_display = !false, max_spec = 1.
+; display_id = 0, max_spec = 1
 ;
-; This is intended to yield a size that fits on a MacBook screen.
+; This is intended to yield behavior that is acceptable on any display.
 ;
-; Keywords:
-;   xsize, integer: number of pixels for each window in the horizontal direction
-;
-;   ysize, integer:  number of pixels for each window in the vertical direction
-;
-;   switch_display, boolean: if two displays are available, toggle this until
-;     new windows appear on desired display. If only one display is available,
-;     this has no effect
-;
-;   max_spec, integer: maximum number of spectra to show in a spectrum view
+; Parameters:
+;     display_id, integer: identifier of the display (if more than one)
+;         in which to show spectra detail plots
+;     max_spec, integer: maximum number of spectra to show in a spectrum view
 ;
 ; Returns: 1 for success, 0 for failure
-function WindowSettings::init, xsize = xsize, ysize = ysize, $
-  switch_display = switch_display, max_spec = max_spec
+function WindowSettings::init, display_id, max_spec
 
   ; Define common block for prototype.
   common WindowSettings, prototype
 
   ; Determine default settings.
   if prototype eq !null then begin
-    ; No prototype yet: set failsafe default values.
-    default_xsize = 1280
-    default_ysize = 900
-    default_switch_display = !false
+    ; Prototype not set: use it.
+    default_display_id = 0
     default_max_spec = 1
-
   endif else begin
     ; Prototype set: use it.
-    default_xsize = prototype.xsize
-    default_ysize = prototype.ysize
-    default_switch_display = prototype.switch_display
+    default_display_id = prototype.display_id
     default_max_spec = prototype.max_spec
-
   endelse
 
-  if not keyword_set(xsize) then xsize = default_xsize
-  if not keyword_set(ysize) then ysize = default_ysize
-  if not keyword_set(switch_display) then switch_display = default_switch_display
-  if not keyword_set(max_spec) then max_spec = default_max_spec
-
-  ; For bad inputs return 0 (null instance).
-  if xsize le 100 or ysize le 100 or max_spec le 0 then return, 0
+  if display_id eq !null then display_id = default_display_id
+  if max_spec eq !null then max_spec = default_max_spec
+  if max_spec lt 0 then max_spec = 0
 
   ; Set this object's properties.
-  self.xsize = xsize
-  self.ysize = ysize
-  self.switch_display = switch_display
+  self.set_display_id, display_id
   self.max_spec = max_spec
 
   if prototype eq !null then begin
@@ -87,23 +67,56 @@ function WindowSettings::init, xsize = xsize, ysize = ysize, $
     prototype = self
   endif
 
-
   return, 1
 end
 
-; Return the xsize setting.
+; Return the xsize (width) of created windows.
 function WindowSettings::xsize
-  return, self.xsize
+  rectangle = self.get_display_rectangle()
+
+  ; Size x to y so that y / x = golden ratio.
+  xsize = self.ysize() * 2.0 / (1 + sqrt(5.0))
+
+  ; Impose some limits: width must be at least half the window width, and
+  ; no more that 90% of the window width.
+  xmin = rectangle[2] * 0.5
+  xmax = rectangle[2] * 0.9
+
+  if xsize lt xmin then xsize = xmin
+  if xsize gt xmax then xsize = xmax
+
+  return, long(xsize)
 end
 
-; Return the ysize setting.
+; Return the ysize (height) of created windows.
 function WindowSettings::ysize
-  return, self.ysize
+  rectangle = self.get_display_rectangle()
+
+  ysize = rectangle[3] * .9
+
+  return, long(ysize)
 end
 
-; Return the switch_display setting.
-function WindowSettings::switch_display
-  return, self.switch_display
+function WindowSettings::get_display_id
+  return, self.display_id
+end
+
+pro WindowSettings::set_display_id, display_id
+  sysMonInfo = obj_new('IDLsysMonitorInfo')
+  num_displays = sysMonInfo->GetNumberOfMonitors()
+
+  if display_id lt 0 then display_id = 0
+  if display_id ge num_displays then display_id = num_displays - 1
+
+  self.display_id = display_id
+end
+
+function WindowSettings::get_display_rectangle
+  sysMonInfo = obj_new('IDLsysMonitorInfo')
+  rectangles = sysMonInfo.getRectangles()
+  rectangle = reform(rectangles[*, self.display_id])
+
+  return, rectangle
 end
 
 ; Return the max_spec setting.
@@ -141,24 +154,22 @@ pro WindowSettings::get_window_pos, win_index, x, y
 
   xsize = self.xsize()
   ysize = self.ysize()
-  switch_display = self.switch_display()
-
-  if switch_display then mon_index = 0 else mon_index = 1
+  display_id = self.display_id
 
   oInfo = obj_new('IDLsysMonitorInfo')
   num_mons = oInfo->GetNumberOfMonitors()
-  if mon_index lt 0 then mon_index = 0
-  if mon_index ge num_mons then mon_index = num_mons - 1
+  if display_id lt 0 then display_id = 0
+  if display_id ge num_mons then display_id = num_mons - 1
 
   rects = oInfo->GetRectangles()
 
   ; Get monitor characteristics.
-  x_min = rects[0, mon_index]
-  mon_width = rects[2, mon_index]
+  x_min = rects[0, display_id]
+  mon_width = rects[2, display_id]
   x_max = x_min + mon_width
 
-  y_min = rects[1, mon_index]
-  mon_height = rects[3, mon_index]
+  y_min = rects[1, display_id]
+  mon_height = rects[3, display_id]
   y_max = y_min + mon_height
 
   ; Slim down requested plot size to fit the monitor if necessary.
@@ -207,27 +218,10 @@ pro WindowSettings::set_prototype
   prototype = self
 end
 
-; Show (print to console) the window settings.
-pro WindowSettings::show
-
-  common WindowSettings, prototype
-
-  format = 'xsize = %d, ysize = %d, switch_display = %s, max_spec = %d, win_index = %d'
-
-  is_prototype = self.xsize eq prototype.xsize and $
-    self.ysize eq prototype.ysize and $
-    self.switch_display eq prototype.switch_display and $
-    self.max_spec eq prototype.max_spec
-
-  if is_prototype then format = 'WindowSettings (prototype): ' + format $
-  else format = 'WindowSettings: ' + format
-
-  if self.switch_display then switch_string = 'true' else switch_string = 'false'
-
-  print, format = format, self.xsize, self.ysize, switch_string, self.max_spec, prototype.win_index
-
-end
-
 pro WindowSettings__define
-  !null = { WindowSettings, xsize:-1, ysize:-1, max_spec:-1, switch_display:!false, win_index:0 }
+  !null = { WindowSettings, $
+    display_id:-1, $
+    max_spec:-1, $
+    win_index:0 $
+  }
 end

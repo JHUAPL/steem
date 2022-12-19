@@ -112,7 +112,7 @@ function PlotEventsWindow::init, controller, window_settings = window_settings
 
   light_curve = plot(dummy_array1d, dummy_array1d, /current, $
     axis_style = 1, $
-    xstyle = exact, ystyle = padded, $
+    xstyle = exact, ystyle = exact, $
     xtickformat = time_format, xtickunits = time_units, thick = 2, $
     ytitle = 'BP low', ycolor = fg_color, $
     symbol = diamond, sym_size = 1, $
@@ -126,36 +126,38 @@ function PlotEventsWindow::init, controller, window_settings = window_settings
 
   row_index += lines_for_lc
 
-  spec_array = make_array(max_spec, /obj)
-  back_spec_array = make_array(max_spec, /obj)
-  diff_spec_array = make_array(max_spec, /obj)
-  fit_array = make_array(max_spec, /obj)
+  if max_spec gt 0 then begin
+    spec_array = make_array(max_spec, /obj)
+    back_spec_array = make_array(max_spec, /obj)
+    diff_spec_array = make_array(max_spec, /obj)
+    fit_array = make_array(max_spec, /obj)
 
-  for i = 0, max_spec - 1 do begin
-    pos = plot_coord(row_index, panel0, imax, jmax, right = 4.0 * xunit, margins = margins)
+    for i = 0, max_spec - 1 do begin
+      pos = plot_coord(row_index, panel0, imax, jmax, right = 4.0 * xunit, margins = margins)
 
-    spec_array[i] = plot(dummy_array1d, dummy_array1d, /current, /ylog, $
-      ytitle = 'Counts per second', thick = 2, $
-      xstyle = exact, ystyle = padded_exact, $
-      color = accent_color1, $
-      position = pos, $
-      window = plot_window)
-    back_spec_array[i] = plot(dummy_array1d, dummy_array1d, /overplot, /ylog, $
-      thick = 2, color = fg_color)
+      spec_array[i] = plot(dummy_array1d, dummy_array1d, /current, /ylog, $
+        ytitle = 'Counts per second', thick = 2, $
+        xstyle = exact, ystyle = padded_exact, $
+        color = accent_color1, $
+        position = pos, $
+        window = plot_window)
+      back_spec_array[i] = plot(dummy_array1d, dummy_array1d, /overplot, /ylog, $
+        thick = 2, color = fg_color)
 
-    pos = plot_coord(row_index, panel1, imax, jmax, left = 4.0 * xunit, margins = margins)
+      pos = plot_coord(row_index, panel1, imax, jmax, left = 4.0 * xunit, margins = margins)
 
-    diff_spec_array[i] = plot(dummy_array1d, dummy_array1d, /current, /ylog, $
-      ytitle = 'Counts per second', thick = 2, $
-      xstyle = exact, ystyle = exact, $
-      color = accent_color1, $
-      position = pos, $
-      window = plot_window)
-    fit_array[i] = plot(dummy_array1d, dummy_array1d, /overplot, /ylog, $
-      thick = 2, color = fg_color)
+      diff_spec_array[i] = plot(dummy_array1d, dummy_array1d, /current, /ylog, $
+        ytitle = 'Counts per second', thick = 2, $
+        xstyle = exact, ystyle = exact, $
+        color = accent_color1, $
+        position = pos, $
+        window = plot_window)
+      fit_array[i] = plot(dummy_array1d, dummy_array1d, /overplot, /ylog, $
+        thick = 2, color = fg_color)
 
-    ++row_index
-  endfor
+      ++row_index
+    endfor
+  endif
 
   self.window_settings = ptr_new(window_settings)
   self.controller = ptr_new(controller)
@@ -329,11 +331,11 @@ pro PlotEventsWindow::replot_event
   ; Disable window updates until all changes have been applied.
   plot_window.refresh, /disable
 
-  ; Size of X and Y of the spectrogram.
+  ; Size of t and E (channel).
   eevt_len = jday.length
   num_chan = chan_index.length
 
-  ; Determine ranges to use for X and Y.
+  ; Determine ranges to use for t and E (channel).
   jday_range = [ jday[0], jday[eevt_len - 1] ]
   chan_range = [ chan_index[0], chan_index[num_chan - 1] ]
 
@@ -350,17 +352,17 @@ pro PlotEventsWindow::replot_event
   endif
 
   if error_status eq 0 then $
-    spect.setData, bp_low_spec, jday[0:eevt_len - 1], chan_index, zlog = log
+    spect.setData, bp_low_spec, jday, chan_index, zlog = log
 
   if error_status eq 0 then $
-    diff_spect.setData, bp_diff_spec, jday[0:eevt_len - 1], chan_index, zlog = log
+    diff_spect.setData, bp_diff_spec, jday, chan_index, zlog = log
 
   catch, /cancel
 
   altitude.SetData, jday, alt
 
   light_curve.SetData, jday, bp_low
-  ;  light_curve.xrange = jday_range
+  light_curve.xrange = jday_range
   light_curve.yrange = bp_low_range
   light_curve.ylog = log
 
@@ -434,11 +436,13 @@ pro PlotEventsWindow::update_spectra, spec0_index, force_update = force_update
   num_spec_to_show = min( [ max_spec, eevt_len - spec0_index ] )
   specN_index = spec0_index + num_spec_to_show - 1
 
-  ; Identify the current selection of spectra by highlighting them on the "light curve".
-  highlights.SetData, jday[spec0_index:specN_index], bp_low[spec0_index:specN_index]
-  ;  highlights.xrange = jday_range
-  highlights.yrange = bp_low_range
-  highlights.ylog = log
+  if specN_index ge spec0_index then begin
+    ; Identify the current selection of spectra by highlighting them on the "light curve".
+    highlights.SetData, jday[spec0_index:specN_index], bp_low[spec0_index:specN_index]
+    ;  highlights.xrange = jday_range
+    highlights.yrange = bp_low_range
+    highlights.ylog = log
+  endif
 
   ; Main loop: update plots to show the requested range of spectra.
   ; The loop index is over the whole event's X range.

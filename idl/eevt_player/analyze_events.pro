@@ -23,7 +23,12 @@
 ;
 ;     filters_file path to an optional file that contains filters to
 ;         apply to the data set while loading it
-pro analyze_events, data_dir, filters_file = filters_file
+pro analyze_events, data_dir, $
+  filters_file = filters_file, $
+  display_id = display_id, $
+  max_spec = max_spec, $
+  nospec = nospec
+
   if data_dir eq !null then begin
     message, 'pass this procedure the directory path in which input data files are located'
   endif else if not file_test(data_dir, /directory) then begin
@@ -32,9 +37,15 @@ pro analyze_events, data_dir, filters_file = filters_file
 
   load, data_dir, eevt, vals, eevt_ids
 
-  if keyword_set(filters_file) then begin
-    load_filters, filters_file, lls, uls
-  endif
+  if keyword_set(filters_file) then load_filters, filters_file, lls, uls
+  if not keyword_set(display_id) then display_id = 0
+  if not keyword_set(max_spec) then max_spec = 0
+
+  if keyword_set(nospec) then begin
+    max_spec = 0
+  endif else begin
+    if max_spec lt 1 then max_spec = 1
+  endelse
 
   select, eevt, vals, eevt_ids, lls = lls, uls = uls
   ;  select, eevt, vals, eevt_ids, lls = lls, uls = uls $
@@ -59,17 +70,7 @@ pro analyze_events, data_dir, filters_file = filters_file
   ; structure for each event chosen in the eevt_ids array.
   fit_params = fit_spectra(eevt, vals, eevt_ids)
 
-  ; Uncomment one of these to get appropriate settings for your monitor. If plots
-  ; are appearing on the wrong monitor, add or toggle the parameter
-  ; switch_display = !true to swap which monitor it uses. max_spec
-  ; controls how many spectra you can see at a time.
-  ;
-  ; Small display.
-  ;window_settings = obj_new('WindowSettings')
-  ; Medium display.
-  ;window_settings = obj_new('WindowSettings', ysize = 1418 * 9 / 10, max_spec = 3)
-  ; Large display.
-  window_settings = obj_new('WindowSettings', ysize = 2138* 14 / 15, max_spec = 5)
+  window_settings = obj_new('WindowSettings', display_id, max_spec)
 
   ; This is the heart of how all individual events are plotted.
   controller = obj_new('AnalyzeEventsController', eevt, vals, eevt_ids, fit_params, $
