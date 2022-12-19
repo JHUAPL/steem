@@ -3,9 +3,9 @@
 ; distributed as a function of three parameters:
 ;
 ;  1. The magnitude-normalized time integral, Inorm. This is the first
-;     EE event classification parameter defined in secion 5.1.
+;     EE event classification parameter defined in section 5.1.
 ;  2. The standard deviation of the signal-to-noise filter ratio,
-;     SIGMAfilter ratio. this is the second EE event classification
+;     SIGMA. This is the second EE event classification
 ;     parameter defined in section 5.1.
 ;  3. The altitude of the spacecraft.
 ;
