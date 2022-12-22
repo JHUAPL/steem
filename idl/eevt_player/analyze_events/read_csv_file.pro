@@ -42,7 +42,7 @@
 ;         space from each token. If omitted or set to false/blank,
 ;         leading and trailing white space WILL be trimmed.
 ;
-function read_csv_file, file_name, $
+function read_csv_file, file_path, $
   delim = delim, $
   regex = regex, $
   comment_id = comment_id, $
@@ -75,7 +75,7 @@ function read_csv_file, file_name, $
   if error_number ne 0 then goto, clean_up
 
   ; Read the file.
-  openr, lun, file_name
+  openr, lun, file_path
   line = ''
   while not eof(lun) do begin
     readf, lun, line
