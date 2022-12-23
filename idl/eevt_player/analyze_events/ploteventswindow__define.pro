@@ -577,15 +577,20 @@ function PlotEventsWindow::KeyHandler, window, isASCII, character, keyvalue, x, 
 
   controller = *self.controller
 
+  left = 5
+  right = 6
+  up = 7
+  down = 8
+
   if release then begin
     r = character
 
-    if r eq 'b' or r eq 'B' then begin
+    if r eq 'b' or r eq 'B' or keyvalue eq left then begin
 
       spec0_index = self.spec0_index - 1
       self.update_spectra, spec0_index
 
-    endif else if r eq ' ' then begin
+    endif else if r eq ' ' or keyvalue eq right then begin
 
       spec0_index = self.spec0_index + 1
       self.update_spectra, spec0_index
@@ -598,9 +603,9 @@ function PlotEventsWindow::KeyHandler, window, isASCII, character, keyvalue, x, 
       else print, 'Displaying event with linear scaling.'
 
       self.update_log, log
-    endif else if r eq 'n' then begin
+    endif else if r eq 'n' or keyValue eq down then begin
       controller.next_event
-    endif else if r eq 'p' or r eq 'P' or r eq 'N' then begin
+    endif else if r eq 'p' or r eq 'P' or r eq 'N' or keyValue eq up then begin
       controller.previous_event
     endif else if r eq 'r' or r eq 'R' then begin
       self.replot_event
