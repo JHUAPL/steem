@@ -21,6 +21,9 @@ usage() {
   echo "            file is executed in IDL, it will produce among other things an"
   echo "            IDL .sav file in the working directory."
   echo
+  echo "    These files will be created in a sub-directory named 'dist', under the"
+  echo "    <working-dir>."
+  echo
   echo "Usage: ${this_script} <app-name> <working-dir> <dist-dir>"
   echo
   echo "    app-name: name of the IDL application to build"
@@ -39,6 +42,7 @@ usage() {
 #   indent="  "
 #
 cat_idl_list() {
+  list=(`echo ${list[@]} | tr ' ' '\012' | sort | tr '\012' ' '`)
   result=""
   delim="${indent}${quote}"
   for item in ${list[@]}; do
@@ -73,6 +77,20 @@ fi
 
 working_dir=`cd "${working_dir}"; pwd`
 
+output_dir="${working_dir}/dist"
+if test -d "${output_dir}"; then
+  :
+elif test -e "${output_dir}"; then
+  echo "${this_script}: output area ${output_dir} exists but is not a directory" >&2
+  exit 1
+else
+  mkdir -p "${output_dir}"
+  if test $? -ne 0; then
+    echo "${this_script}: unable to create output directory ${output_dir}" >&2
+    exit 1
+  fi
+fi
+
 if test "${dist_dir}" = ""; then
   usage >&2
   echo "${this_script}: missing third argument, name of the distribution (IDL output) directory." >&2
@@ -85,10 +103,10 @@ fi
 
 # Derived variables.
 compile_file_name="compile_${app_name}.pro"
-compile_file="${working_dir}/${compile_file_name}"
+compile_file="${output_dir}/${compile_file_name}"
 make_rt_file_name="make_rt_${app_name}.pro"
-make_rt_file="${working_dir}/${make_rt_file_name}"
-sav_file="${working_dir}/${app_name}_app.sav"
+make_rt_file="${output_dir}/${make_rt_file_name}"
+sav_file="${output_dir}/${app_name}_app.sav"
 
 # Find the pro files, but exclude the .run file that this script writes
 # (that creates the dist files in IDL).
@@ -140,8 +158,15 @@ fi
 # At this point everything *should* work, so delete/recreate the dist directory.
 if test -d "${dist_dir}"; then
   rm -rf "${dist_dir}"
+elif test -e "${dist_dir}"; then
+  echo "${this_script}: distribution directory ${dist_dir} exists but is not a directory" >&2
+  exit 1
 fi
-mkdir "${dist_dir}"
+mkdir -p "${dist_dir}"
+if test $? -ne 0; then
+  echo "${this_script}: unable to create distribution directory ${dist_dir}" >&2
+  exit 1
+fi
 dist_dir=`cd "${dist_dir}"; pwd`
 
 quote="'"
@@ -156,7 +181,7 @@ function_array=`cat_idl_list`
 list=(${pros[@]})
 pro_array=`cat_idl_list`
 
-list=(${methods[@]})
+list=`echo "(${methods[@]})" | tr ' ' '\012' | sort`
 method_array=`cat_idl_list`
 
 echo -e "resolve_all, $\n  class = [ $\n${class_array} ], $\n  resolve_function = [ $\n${function_array} ], $\n  resolve_procedure = [ $\n${pro_array} ]\n\nend" > "${compile_file}"
