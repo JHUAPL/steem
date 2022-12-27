@@ -34,11 +34,33 @@ function WindowSettings::init, display_id, max_spec
 
   ; Determine default settings.
   if prototype eq !null then begin
-    ; Prototype not set: use it.
-    default_display_id = 0
-    default_max_spec = 1
+    ; Prototype not set: compute defaults based on available displays.
+    sysMonInfo = obj_new('IDLsysMonitorInfo')
+    num_displays = sysMonInfo->GetNumberOfMonitors()
+    rectangles = sysMonInfo->GetRectangles()
+
+    ; (Fixed) index of the display height field within rectangle.
+    height_index = 3
+
+    ; Maximum display height in pixels.
+    max_height = 0
+    ; Index of the display that has the maxinum height.
+    best_display_id = 0
+
+    for i = 0, num_displays - 1 do begin
+      if max_height lt rectangles[height_index, i] then begin
+        max_height = rectangles[height_index, i]
+        best_display_id = i
+      endif
+    endfor
+
+    default_display_id = best_display_id
+
+    if max_height ge 2000 then default_max_spec = 5 $
+    else if max_height ge 1200 then default_max_spec = 3 $
+    else default_max_spec = 1
   endif else begin
-    ; Prototype set: use it.
+    ; Prototype set: get defaults from it.
     default_display_id = prototype.display_id
     default_max_spec = prototype.max_spec
   endelse
@@ -77,13 +99,16 @@ end
 function WindowSettings::xsize
   rectangle = self.get_display_rectangle()
 
+  width_index = 2
+  display_width = rectangle[width_index]
+
   ; Size x to y so that y / x = golden ratio.
   xsize = self.ysize() * 2.0 / (1 + sqrt(5.0))
 
   ; Impose some limits: width must be at least half the window width, and
   ; no more that 90% of the window width.
-  xmin = rectangle[2] * 0.5
-  xmax = rectangle[2] * 0.9
+  xmin = display_width * 0.5
+  xmax = display_width * 0.9
 
   if xsize lt xmin then xsize = xmin
   if xsize gt xmax then xsize = xmax
@@ -95,7 +120,10 @@ end
 function WindowSettings::ysize
   rectangle = self.get_display_rectangle()
 
-  ysize = rectangle[3] * .9
+  height_index = 3
+  display_height = rectangle[height_index]
+
+  ysize = display_height * .9
 
   return, long(ysize)
 end
@@ -155,7 +183,7 @@ function WindowSettings::create_win, title = title, handler = handler
   ;  button2 = WIDGET_BUTTON(menu1, VALUE='TWO')
   ;  button3 = WIDGET_BUTTON(menu1, VALUE='THREE')
 
-  ww = widget_window(b)
+  ww = widget_window(b, xsize = xsize, ysize = ysize)
 
   key = string(b, format = "win%d")
 
