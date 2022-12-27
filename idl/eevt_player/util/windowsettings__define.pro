@@ -27,7 +27,8 @@
 ;     max_spec, integer: maximum number of spectra to show in a spectrum view
 ;
 ; Returns: 1 for success, 0 for failure
-function WindowSettings::init, display_id, max_spec
+function WindowSettings::init, display_id, max_spec, $
+  no_contour = no_contour
 
   ; Define common block for prototype.
   common WindowSettings, prototype
@@ -68,10 +69,12 @@ function WindowSettings::init, display_id, max_spec
   if display_id eq !null then display_id = default_display_id
   if max_spec eq !null then max_spec = default_max_spec
   if max_spec lt 0 then max_spec = 0
+  if not keyword_set(no_contour) then no_contour = 0 else no_contour = boolean(no_contour)
 
   ; Set this object's properties.
   self.set_display_id, display_id
   self.max_spec = max_spec
+  self.no_contour = no_contour
 
   if prototype eq !null then begin
     ; Take actions here that need only be done the very first time
@@ -153,6 +156,10 @@ end
 ; Return the max_spec setting.
 function WindowSettings::max_spec
   return, self.max_spec
+end
+
+function WindowSettings::no_contour
+  return, self.no_contour
 end
 
 function WindowSettings::get_win_index
@@ -301,6 +308,7 @@ pro WindowSettings__define
     display_id:-1, $
     max_spec:-1, $
     win_index:0, $
+    no_contour:0, $
     window_map:ptr_new() $
   }
 end

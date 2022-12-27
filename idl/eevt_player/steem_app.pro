@@ -52,7 +52,7 @@ pro steem_app, config_file
     detail_display_id = scatter_display_id
   endif
 
-  analyze_events, data_dir, $
+  analyze_events, data_dir, scatter_plots, $
     filters_file = filters_file, $
     display_id = scatter_display_id, $
     no_contour = no_contour, $

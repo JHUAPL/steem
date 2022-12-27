@@ -23,17 +23,23 @@
 ;
 ;     filters_file path to an optional file that contains filters to
 ;         apply to the data set while loading it
-pro analyze_events, data_dir, $
+pro analyze_events, data_dir, scatter_plots, $
   filters_file = filters_file, $
   display_id = display_id, $
   no_contour = no_contour, $
   max_spec = max_spec, $
   nospec = nospec
 
-  if data_dir eq !null then begin
+  if not keyword_set(data_dir) then begin
     message, 'pass this procedure the directory path in which input data files are located'
   endif else if not file_test(data_dir, /directory) then begin
     message, string(format = 'data directory ''%s'' does not exist', data_dir)
+  endif
+
+  if not keyword_set(scatter_plots) then begin
+    message, 'pass this procedure an array that specifies which scatter plots to produce for the loaded events'
+  endif else if n_elements(scatter_plots) le 2 then begin
+    message, 'scatter_plots argument must have at least one x-y pair'
   endif
 
   load, data_dir, eevt, vals, eevt_ids
@@ -67,7 +73,7 @@ pro analyze_events, data_dir, $
   ; structure for each event chosen in the eevt_ids array.
   fit_params = fit_spectra(eevt, vals, eevt_ids)
 
-  window_settings = obj_new('WindowSettings', display_id, max_spec)
+  window_settings = obj_new('WindowSettings', display_id, max_specs, no_contour = no_contour)
 
   ; This is the heart of how all individual events are plotted.
   controller = obj_new('AnalyzeEventsController', eevt, vals, eevt_ids, fit_params, $
@@ -80,29 +86,13 @@ pro analyze_events, data_dir, $
   title = 'E.E. Events'
   win = window_settings.create_win(title = title, handler = handler)
 
-  ; Create property display objects for each of the plots to be created below.
-  smooth_v_sn = obj_new('GlobalPropertyDisplay', controller)
-  alt_v_sn = obj_new('GlobalPropertyDisplay', controller)
-  alt_v_smooth = obj_new('GlobalPropertyDisplay', controller)
-
-  ; The current row index, used to lay out plots.
-  row_index = 0
   ; The number of plot panels in this window.
-  num_rows = 3
-
-  ; Create the three plots.
-  smooth_v_sn->display, eevt, vals, eevt_ids, 'sn_tot_norm2', 'sm_ness_all2', $
-    row_index = row_index++, num_rows = num_rows
-
-  alt_v_sn->display, eevt, vals, eevt_ids, 'sn_tot_norm2', 'alt', $
-    row_index = row_index++, num_rows = num_rows
-
-  alt_v_smooth->display, eevt, vals, eevt_ids, 'sm_ness_all2', 'alt', $
-    row_index = row_index++, num_rows = num_rows
-
-  ; Tell the event handler about all the plots so it can interact with them.
-  handler->add_plot, smooth_v_sn
-  handler->add_plot, alt_v_sn
-  handler->add_plot, alt_v_smooth
+  num_rows = n_elements(scatter_plots) / 2
+  for row_index = 0, num_rows - 1 do begin
+    scatter_plot = obj_new('GlobalPropertyDisplay', controller)
+    scatter_plot->display, eevt, vals, eevt_ids, scatter_plots[row_index, 0], scatter_plots[row_index, 1], $
+      row_index = row_index, num_rows = num_rows
+    handler->add_plot, scatter_plot
+  endfor
 
 end
