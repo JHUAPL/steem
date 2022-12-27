@@ -26,6 +26,7 @@
 pro analyze_events, data_dir, $
   filters_file = filters_file, $
   display_id = display_id, $
+  no_contour = no_contour, $
   max_spec = max_spec, $
   nospec = nospec
 
@@ -38,14 +39,10 @@ pro analyze_events, data_dir, $
   load, data_dir, eevt, vals, eevt_ids
 
   if keyword_set(filters_file) then load_filters, filters_file, lls, uls
-  if not keyword_set(display_id) then display_id = 0
-  if not keyword_set(max_spec) then max_spec = 0
 
   if keyword_set(nospec) then begin
     max_spec = 0
-  endif else begin
-    if max_spec lt 1 then max_spec = 1
-  endelse
+  endif
 
   select, eevt, vals, eevt_ids, lls = lls, uls = uls
   ;  select, eevt, vals, eevt_ids, lls = lls, uls = uls $
