@@ -1,3 +1,8 @@
+; This class was one of the first new graphics classes developed
+; during the MESSENGER EE work. If time permits, it might make
+; more sense in the current design to move its small functionality
+; to other viewer/controller classes developed since this one.
+;
 function PlotEventsHandler::init, controller
   self.controller = ptr_new(controller)
   self.plots = ptr_new()
