@@ -615,6 +615,12 @@ function PlotEventsWindow::KeyHandler, window, isASCII, character, keyvalue, x, 
 end
 
 function PlotEventsWindow::MouseDown, window, x, y, button, keymods, clicks
+  if clicks eq 2 then begin
+    ; Return 0  here to disable the default handler from getting called.
+    ; This pops up an annoying properties window.
+    return, 0
+  endif
+
   return, 1
 end
 
