@@ -1,9 +1,15 @@
 function exp_fit, xin, yin, yfit = yfit
+  common exp_fit, suppress_output
+
+  if not keyword_set(suppress_output) then suppress_output = !false
+
   param = [ !values.f_nan, !values.f_nan ]
 
   qx = where(xin gt 0, nqx)
   if nqx lt 2 then begin
-    message,'There are not enough non-zero X values!', /continue
+    if not suppress_output then begin
+      message,'There are not enough non-zero X values!', /continue
+    endif
     return, param
   endif
 
@@ -12,7 +18,9 @@ function exp_fit, xin, yin, yfit = yfit
 
   qy = where(y gt 0, nqy)
   if nqy lt 2 then begin
-    message,'There are not enough non-zero Y values!', /continue
+    if not suppress_output then begin
+      message,'There are not enough non-zero Y values!', /continue
+    endif
     return, param
   endif
 

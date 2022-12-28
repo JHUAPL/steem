@@ -1,4 +1,8 @@
 pro steem_app, config_file
+  common exp_fit, suppress_output
+
+  suppress_output = 1
+
   ; Read launch parameters from the config file.
   if not keyword_set(config_file) then begin
     config_file = 'launch/default/steem-config.txt'
