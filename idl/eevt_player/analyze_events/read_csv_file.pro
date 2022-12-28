@@ -66,16 +66,20 @@ function read_csv_file, file_path, $
   max_num_tokens = -1
   ragged_arrays = !false
 
-  get_lun, lun
-
   ; From this point on, need to make sure we clean up if something
   ; goes wrong.
   on_ioerror, clean_up
+
+  error_number = 0
   catch, error_number
   if error_number ne 0 then goto, clean_up
 
+  lun = -1
+  get_lun, lun
+
   ; Read the file.
   openr, lun, file_path
+
   line = ''
   while not eof(lun) do begin
     readf, lun, line
@@ -118,10 +122,20 @@ function read_csv_file, file_path, $
     lines = [ lines, ptr_new(split_line) ]
   endwhile
 
-  clean_up:
   catch, /cancel
-  close, lun
-  free_lun, lun
+
+  clean_up:
+  if error_number ne 0 then begin
+    print, string(format = 'Error parsing comma separated values from file %s', file_path)
+  endif
+  if !error_state.code ne 0 then begin
+    print, !error_state.msg
+  endif
+
+  if lun ge 0 then begin
+    close, lun
+    free_lun, lun
+  endif
 
   ; Prepare return value.
   if lines.length gt 0 then begin

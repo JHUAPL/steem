@@ -36,17 +36,20 @@ function read_key_value_file, file_path, $
   keys = []
   values = []
 
-  get_lun, lun
-
   ; From this point on, need to make sure we clean up if something
   ; goes wrong.
-  error_number = 0
   on_ioerror, clean_up
+
+  error_number = 0
   catch, error_number
   if error_number ne 0 then goto, clean_up
 
+  lun = -1
+  get_lun, lun
+
   ; Read the file.
   openr, lun, file_path
+
   line = ''
   while not eof(lun) do begin
     readf, lun, line
@@ -78,10 +81,20 @@ function read_key_value_file, file_path, $
 
   endwhile
 
-  clean_up:
   catch, /cancel
-  close, lun
-  free_lun, lun
+
+  clean_up:
+  if error_number ne 0 then begin
+    print, string(format = 'Error parsing key-value pair from file %s', file_path)
+  endif
+  if !error_state.code ne 0 then begin
+    print, !error_state.msg
+  endif
+
+  if lun ge 0 then begin
+    close, lun
+    free_lun, lun
+  endif
 
   if n_elements(keys) gt 0 then begin
     return, dictionary(keys, values)
