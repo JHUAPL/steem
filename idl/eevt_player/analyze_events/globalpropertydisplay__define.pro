@@ -226,30 +226,32 @@ pro GlobalPropertyDisplay::display, eevt, vals, eevt_ids, $
   evt_x = extract_array0(eevt, vals, x_quant)
   evt_y = extract_array0(eevt, vals, y_quant)
 
-  margins = [ 15.0 * xunit, 8.0 * xunit, 2.0 * yunit, 20.0 * yunit ]
+  if keyword_set(evt_x) and keyword_set(evt_y) and n_elements(evt_x) eq n_elements(evt_y) then begin
+    margins = [ 15.0 * xunit, 8.0 * xunit, 2.0 * yunit, 20.0 * yunit ]
 
-  pos = plot_coord(row_index, column_index, num_rows, 1, margins = margins)
+    pos = plot_coord(row_index, column_index, num_rows, 1, margins = margins)
 
-  if row_index eq 0 then begin
+    if row_index eq 0 then begin
 
-    main_plot = plot(evt_x, evt_y, xtitle = x_quant, ytitle = y_quant, $
-      symbol = 'Diamond', linestyle = noline, $
-      /current, $
+      main_plot = plot(evt_x, evt_y, xtitle = x_quant, ytitle = y_quant, $
+        symbol = 'Diamond', linestyle = noline, $
+        /current, $
+        position = pos)
+
+    endif else begin
+
+      main_plot = plot(evt_x, evt_y, xtitle = x_quant, ytitle = y_quant, $
+        symbol = 'Diamond', linestyle = noline, $
+        /current, $
+        position = pos)
+
+    endelse
+
+    highlight = plot([ evt_x[0] ], [ evt_y[0] ], $
+      symbol = 'Diamond', sym_color = 'Red', sym_thick = 2.0, linestyle = noline, $
+      /current, /overplot, /nodata, $
       position = pos)
-
-  endif else begin
-
-    main_plot = plot(evt_x, evt_y, xtitle = x_quant, ytitle = y_quant, $
-      symbol = 'Diamond', linestyle = noline, $
-      /current, $
-      position = pos)
-
-  endelse
-
-  highlight = plot([ evt_x[0] ], [ evt_y[0] ], $
-    symbol = 'Diamond', sym_color = 'Red', sym_thick = 2.0, linestyle = noline, $
-    /current, /overplot, /nodata, $
-    position = pos)
+  endif
 
   self->set_data, eevt_ids, evt_x, evt_y
   self->set_pos, pos
