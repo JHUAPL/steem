@@ -32,6 +32,9 @@ usage() {
   echo "        This directory is also where ${this_script} writes its output files."
   echo
   echo "    dist-dir: path to the directory under which IDL will create the distribution files."
+  echo
+  echo "    Example:"
+  echo "        ./make-rt.sh steem ../idl/eevt_player ../../dist"
 }
 
 # Before calling, set list to be your array:
