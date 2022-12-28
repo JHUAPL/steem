@@ -216,7 +216,7 @@ pro Spectrogram::delete
 
     c.delete
 
-    for i = axes.length - 1, 0, -1 do begin
+    for i = n_elements(axes) - 1, 0, -1 do begin
       axes[i].delete
     endfor
   endif
