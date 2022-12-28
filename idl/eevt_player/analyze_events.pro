@@ -73,7 +73,7 @@ pro analyze_events, data_dir, scatter_plots, $
   ; structure for each event chosen in the eevt_ids array.
   fit_params = fit_spectra(eevt, vals, eevt_ids)
 
-  window_settings = obj_new('WindowSettings', display_id, max_specs, no_contour = no_contour)
+  window_settings = obj_new('WindowSettings', display_id, max_spec, no_contour = no_contour)
 
   ; This is the heart of how all individual events are plotted.
   controller = obj_new('AnalyzeEventsController', eevt, vals, eevt_ids, fit_params, $
