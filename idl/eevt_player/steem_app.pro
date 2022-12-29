@@ -13,10 +13,10 @@ pro steem_app, config_file
   if keyword_set(config) then begin
     if config.hasKey('data_dir') then data_dir = config.data_dir
     if config.hasKey('filters') then filters_file = config.filters
+    if config.hasKey('help_file') then help_file = config.help_file
     if config.hasKey('scatter_plots') then scatter_plots_file = config.scatter_plots
     if config.hasKey('scatter_display_id') then scatter_display_id = config.scatter_display_id
     if config.hasKey('detail_display_id') then detail_display_id = config.detail_display_id
-    if config.hasKey('no_contour') then no_contour = config.no_contour
     if config.hasKey('no_spec') then no_spec = config.no_spec
     if config.hasKey('max_spec') then max_spec = config.max_spec
   endif
@@ -24,10 +24,10 @@ pro steem_app, config_file
   ; Validate/set default values.
   data_dir = validate_par(data_dir, 'string', 'data')
   filters_file = validate_par(filters_file, 'string', !null)
+  help_file = validate_par(help_file, 'string', !null)
   scatter_plots_file = validate_par(scatter_plots_file, 'string', !null)
   scatter_display_id = validate_par(scatter_display_id, 'int+', !null)
   detail_display_id = validate_par(detail_display_id, 'int+', !null)
-  no_contour = validate_par(no_contour, 'bool', !false)
   no_spec = validate_par(no_spec, 'bool', !false)
   max_spec = validate_par(max_spec, 'int+', !null)
 
@@ -58,8 +58,8 @@ pro steem_app, config_file
 
   analyze_events, data_dir, scatter_plots, $
     filters_file = filters_file, $
+    help_file = help_file, $
     display_id = scatter_display_id, $
-    no_contour = no_contour, $
     max_spec = max_spec, $
     nospec = no_spec
 end

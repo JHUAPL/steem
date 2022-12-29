@@ -27,8 +27,7 @@
 ;     max_spec, integer: maximum number of spectra to show in a spectrum view
 ;
 ; Returns: 1 for success, 0 for failure
-function WindowSettings::init, display_id, max_spec, $
-  no_contour = no_contour
+function WindowSettings::init, display_id, max_spec, help_file = help_file
 
   ; Define common block for prototype.
   common WindowSettings, prototype
@@ -60,21 +59,24 @@ function WindowSettings::init, display_id, max_spec, $
     if max_height ge 2000 then default_max_spec = 5 $
     else if max_height ge 1200 then default_max_spec = 3 $
     else default_max_spec = 1
+
+    default_help_file = help_file
   endif else begin
     ; Prototype set: get defaults from it.
     default_display_id = prototype.display_id
     default_max_spec = prototype.max_spec
+    default_help_file = prototype.help_file
   endelse
 
   if display_id eq !null then display_id = default_display_id
   if max_spec eq !null then max_spec = default_max_spec
   if max_spec lt 0 then max_spec = 0
-  if not keyword_set(no_contour) then no_contour = 0 else no_contour = boolean(no_contour)
+  if not keyword_set(help_file) then help_file = default_help_file
 
   ; Set this object's properties.
   self.set_display_id, display_id
   self.max_spec = max_spec
-  self.no_contour = no_contour
+  self.help_file = help_file
 
   if prototype eq !null then begin
     ; Take actions here that need only be done the very first time
@@ -89,10 +91,10 @@ function WindowSettings::init, display_id, max_spec, $
     ; Standard procedural plot set-up.
     ;    standard_plot
 
-    self.window_map = ptr_new(dictionary())
+    self.widget_map = ptr_new(dictionary())
     prototype = self
   endif else begin
-    self.window_map = ptr_new(prototype.window_map)
+    self.widget_map = ptr_new(prototype.widget_map)
   endelse
 
   return, 1
@@ -158,10 +160,6 @@ function WindowSettings::max_spec
   return, self.max_spec
 end
 
-function WindowSettings::no_contour
-  return, self.no_contour
-end
-
 function WindowSettings::get_win_index
   common WindowSettings, prototype
 
@@ -172,29 +170,33 @@ function WindowSettings::create_win, title = title, handler = handler
 
   common WindowSettings, prototype
 
-  window_map = *prototype.window_map
+  widget_map = *prototype.widget_map
 
   get_window_pos, prototype.win_index, x, y
 
   xsize = self.xsize()
   ysize = self.ysize()
 
-  ;  w = window(location = [ x, y ], dimensions = [ xsize, ysize ], window_title = title)
-
   b = widget_base(title = title, xoffset = x, yoffset = y, mbar = bar, /column, /tlb_size_events, /tlb_resize_nodraw)
+
+  key = string(b, format = "base%d")
+  widget_map[key] = b
 
   xmanager, 'WindowSettings::create_win', b, event_handler = 'steem_window_handler', /no_block
 
-  ;  menu1 = WIDGET_BUTTON(bar, VALUE='MENU1', /MENU)
-  ;  button1 = WIDGET_BUTTON(menu1, VALUE='ONE')
-  ;  button2 = WIDGET_BUTTON(menu1, VALUE='TWO')
-  ;  button3 = WIDGET_BUTTON(menu1, VALUE='THREE')
+  file_menu = widget_button(bar, value = 'File', /menu)
+  help_menu = widget_button(bar, value = 'Help', /menu, event_pro = 'steem_help_handler')
+
+  !null = widget_button(file_menu, value = 'New Event Detail Window', accelerator = 'Ctrl+N')
+  !null = widget_button(file_menu, value = 'Close Window', accelerator = 'Ctrl+W', event_pro = 'steem_window_handler')
+  !null = widget_button(file_menu, value = 'Exit', accelerator = 'Ctrl+X', event_pro = 'steem_exit_handler')
+
+  !null = widget_button(help_menu, value = 'STEEM Help', accelerator = 'Ctrl+H', event_pro = 'steem_help_handler')
 
   ww = widget_window(b, xsize = xsize, ysize = ysize)
 
   key = string(b, format = "win%d")
-
-  window_map[key] = ww
+  widget_map[key] = ww
 
   widget_control, b, /realize
 
@@ -268,8 +270,12 @@ pro WindowSettings::get_window_pos, win_index, x, y
 
 end
 
-function WindowSettings::get_window_map
-  return, *self.window_map
+function WindowSettings::get_widget_map
+  return, *self.widget_map
+end
+
+function WindowSettings::get_help_file
+  return, self.help_file
 end
 
 ; Make *this* instance of WindowSettings the new prototype. Future windows
@@ -284,11 +290,11 @@ end
 pro steem_window_handler, event
   common WindowSettings, prototype
 
-  window_map = prototype.get_window_map()
+  widget_map = prototype.get_widget_map()
 
   key = string(event.handler, format = "win%d")
 
-  if window_map.hasKey(key) then begin
+  if widget_map.hasKey(key) then begin
     ; This is in case event doesn't have x, y, i.e., if it's the wrong
     ; kind of event.
     catch, error_number
@@ -297,10 +303,31 @@ pro steem_window_handler, event
     xsize = event.x
     ysize = event.y
 
-    widget_control, window_map[key], xsize = xsize, ysize = ysize
+    widget_control, widget_map[key], xsize = xsize, ysize = ysize
 
     catch, /cancel
   endif
+end
+
+pro steem_help_handler, event
+  common WindowSettings, prototype
+
+  help_file = prototype.get_help_file()
+
+  if keyword_set(help_file) then begin
+    xdisplayfile, help_file, title = 'STEEM Help'
+  endif
+end
+
+pro steem_exit_handler, event
+  common WindowSettings, prototype
+
+  widget_map = prototype.get_widget_map()
+  foreach key, widget_map.keys() do begin
+    if strmatch(key, 'base*') then begin
+      widget_control, widget_map[key], /destroy
+    endif
+  endforeach
 end
 
 pro WindowSettings__define
@@ -308,7 +335,7 @@ pro WindowSettings__define
     display_id:-1, $
     max_spec:-1, $
     win_index:0, $
-    no_contour:0, $
-    window_map:ptr_new() $
+    help_file:'', $
+    widget_map:ptr_new() $
   }
 end
