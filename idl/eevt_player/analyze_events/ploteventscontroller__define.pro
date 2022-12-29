@@ -25,10 +25,7 @@ function PlotEventsController::init, eevt, vals, eevt_ids, fit_params, $
 
   self.window_settings = ptr_new(window_settings)
 
-  self.plot_window_defined = !false
-  self.plot_window = ptr_new()
-
-  self.new_plot_window = ptr_new(obj_new('PlotEventsWindow', self, window_settings = window_settings))
+  self.plot_window = ptr_new(obj_new('PlotEventsWindow', self, window_settings = window_settings))
 
   return, 1
 end
@@ -41,14 +38,14 @@ pro PlotEventsController::show_plots, event_index = event_index
   fit_params = *self.fit_params
   handler = *self.handler
   window_settings = *self.window_settings
-  new_plot_window = *self.new_plot_window
+  plot_window = *self.plot_window
 
   if not keyword_set(event_index) then event_index = 0
 
-  if eevt_ids.length eq 0 then return
+  if n_elements(eevt_ids) eq 0 then return
 
   if event_index lt 0 then event_index = 0
-  if event_index ge eevt_ids.length then event_index = eevt_ids.length - 1
+  if event_index ge n_elements(eevt_ids) then event_index = n_elements(eevt_ids) - 1
 
   self.event_index = event_index
 
@@ -58,13 +55,13 @@ pro PlotEventsController::show_plots, event_index = event_index
   this_eevt = eevt[event_index, *]
   this_fit = *fit_params[event_index]
 
-  new_plot_window.set_title, title
+  plot_window.set_title, title
   self.plot_event, this_eevt, this_fit
 
 end
 
 pro PlotEventsController::plot_event, this_eevt, this_fit
-  new_plot_window = *self.new_plot_window
+  plot_window = *self.plot_window
 
   eevt_len = this_eevt[0].eevt.evt_length
 
@@ -96,24 +93,28 @@ pro PlotEventsController::plot_event, this_eevt, this_fit
   alt = this_eevt[0:eevt_len - 1].eph.alt
   bp_low = this_eevt[0:eevt_len-1].eevt.bp_low
 
-  new_plot_window.update_event, jday, chan_index, $
+  plot_window.update_event, jday, chan_index, $
     bp_low_spec, this_back_spec, bp_diff_spec, $
     alt, bp_low, fit_param = this_fit
 
   spec0_index = 0
-  new_plot_window.update_spectra, spec0_index, force_update = !true
+  plot_window.update_spectra, spec0_index, force_update = !true
+
+  plot_window.refresh_window
 end
 
 pro PlotEventsController::next_event
   eevt_ids  = *self.eevt_ids
-  if self.event_index lt eevt_ids.length - 1 then begin
-    self.show_plots, event_index = self.event_index + 1
+  if self.event_index lt n_elements(eevt_ids) - 1 then begin
+    event_index = self.event_index + 1
+    self.show_plots, event_index = event_index
   endif
 end
 
 pro PlotEventsController::previous_event
   if self.event_index gt 0 then begin
-    self.show_plots, event_index = self.event_index - 1
+    event_index = self.event_index - 1
+    self.show_plots, event_index = event_index
   endif
 end
 
@@ -129,8 +130,6 @@ pro PlotEventsController__define
     event_index:0, $
     handler:ptr_new(), $
     window_settings:ptr_new(), $
-    plot_window_defined:!false, $
-    plot_window:ptr_new(), $
-    new_plot_window:ptr_new() $
+    plot_window:ptr_new() $
   }
 end

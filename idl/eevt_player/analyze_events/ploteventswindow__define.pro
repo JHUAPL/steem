@@ -19,20 +19,46 @@ function PlotEventsWindow::init, controller, window_settings = window_settings
   ; Standard procedural plot set-up.
   standard_plot
 
-  plot_window = window_settings.create_win(title = 'Event Detail', handler = handler)
-
-  plot_window.refresh, /disable
-
-  ; Dummy arrays used to create plots before any events are available to plot.
-  dummy_array1d = make_array(2, /float)
-  dummy_array2d = make_array(2, 2, /float)
-
   ; Time axis formatting.
   date_format = [ '%h:%i' ]
   ; Initialize date labels.
   !null = label_date(date_format = date_format)
   time_format = [ 'label_date' ]
   time_units = [ 'Minutes' ]
+
+  plot_window = window_settings.create_win(title = 'Event Detail', handler = handler)
+
+  self.window_settings = ptr_new(window_settings)
+  self.controller = ptr_new(controller)
+  self.plot_window = ptr_new(plot_window)
+
+  self.time_format = ptr_new(time_format)
+  self.time_units = ptr_new(time_units)
+  self.spec0_index = 0
+  self.log = !true
+
+  ; Now create all the individual plots.
+  self.create_plots
+
+  return, 1
+end
+
+pro PlotEventsWindow::create_plots
+  window_settings = *self.window_settings
+  controller = *self.controller
+  plot_window = *self.plot_window
+
+  time_format = *self.time_format
+  time_units = *self.time_units
+
+  plot_window.refresh, /disable
+
+  ; Before creating any plots, delete any plots that are already defined.
+  self.delete_plots
+
+  ; Dummy arrays used to create plots before any events are available to plot.
+  dummy_array1d = make_array(2, /float)
+  dummy_array2d = make_array(2, 2, /float)
 
   ; Line plotting constants
   diamond = "Diamond"
@@ -79,7 +105,7 @@ function PlotEventsWindow::init, controller, window_settings = window_settings
   row_index += lines_for_title
 
   pos = plot_coord(row_index, panel0, imax, 1, margins = margins)
-  spectrogram = obj_new('Spectrogram', dummy_array2d, dummy_array1d, dummy_array1d, $
+  spect = obj_new('Spectrogram', dummy_array2d, dummy_array1d, dummy_array1d, $
     xtickformat = time_format, xtickunits = time_units, $
     nodata = !true, $
     ;    suppress_color_bar = !true, $
@@ -159,13 +185,8 @@ function PlotEventsWindow::init, controller, window_settings = window_settings
     endfor
   endif
 
-  self.window_settings = ptr_new(window_settings)
-  self.controller = ptr_new(controller)
-  self.plot_window = ptr_new(plot_window)
-  self.time_format = ptr_new(time_format)
-  self.time_units = ptr_new(time_units)
   self.title_plot = ptr_new(title_plot)
-  self.spectrogram = ptr_new(spectrogram)
+  self.spectrogram = ptr_new(spect)
   self.diff_spect = ptr_new(diff_spect)
   self.altitude = ptr_new(altitude)
   self.light_curve = ptr_new(light_curve)
@@ -175,10 +196,101 @@ function PlotEventsWindow::init, controller, window_settings = window_settings
   self.diff_spec_array = ptr_new(diff_spec_array)
   self.fit_array = ptr_new(fit_array)
 
-  self.spec0_index = 0
-  self.log = !true
+end
 
-  return, 1
+pro PlotEventsWindow::delete_plots
+  window_settings = *self.window_settings
+
+  if ptr_valid(self.title_plot) then begin
+    title_plot = *self.title_plot
+    self.title_plot = ptr_new()
+  endif
+  if ptr_valid(self.spectrogram) then begin
+    spect = *self.spectrogram
+    self.spectrogram = ptr_new()
+  endif
+  if ptr_valid(self.diff_spect) then begin
+    diff_spect = *self.diff_spect
+    self.diff_spect = ptr_new()
+  endif
+  if ptr_valid(self.altitude) then begin
+    altitude = *self.altitude
+    self.altitude = ptr_new()
+  endif
+  if ptr_valid(self.light_curve) then begin
+    light_curve = *self.light_curve
+    self.light_curve = ptr_new()
+  endif
+  if ptr_valid(self.highlights) then begin
+    highlights = *self.highlights
+    self.highlights = ptr_new()
+  endif
+  if ptr_valid(self.spec_array) then begin
+    spec_array = *self.spec_array
+    self.spec_array = ptr_new()
+  endif
+  if ptr_valid(self.back_spec_array) then begin
+    back_spec_array = *self.back_spec_array
+    self.back_spec_array = ptr_new()
+  endif
+  if ptr_valid(self.diff_spec_array) then begin
+    diff_spec_array = *self.diff_spec_array
+    self.diff_spec_array = ptr_new();
+  endif
+  if ptr_valid(self.fit_array) then begin
+    fit_array = *self.fit_array
+    self.fit_array = ptr_new()
+  endif
+
+  max_spec = window_settings.max_spec()
+
+  if max_spec gt 0 then begin
+    for i = max_spec - 1, 0, -1 do begin
+      if keyword_set(fit_array) then begin
+        self.delete_plot, fit_array[i]
+      endif
+      if keyword_set(diff_spec_array) then begin
+        self.delete_plot, diff_spec_array[i]
+      endif
+      if keyword_set(back_spec_array) then begin
+        self.delete_plot, back_spec_array[i]
+      endif
+      if keyword_set(spec_array) then begin
+        self.delete_plot, spec_array[i]
+      endif
+    endfor
+  endif
+
+  if keyword_set(highlights) then self.delete_plot, highlights
+  if keyword_set(light_curve) then self.delete_plot, light_curve
+  if keyword_set(altitude) then self.delete_plot, altitude
+  if keyword_set(diff_spect) then diff_spect.delete
+  if keyword_set(spect) then spect.delete
+  if keyword_set(title_plot) then self.delete_plot, title_plot
+
+end
+
+; Spent way too long getting this to work even halfway well.
+; If you resize one of the plots, then replot, then click in
+; the resized area, you still see a ghost outline of the deleted
+; plot, which you can resize (with no effect other than to resize
+; the ghost). I tried erase, delete, hide, etc. ad nauseum. The
+; best behavior I could get was with this combination: deleting
+; individually the axes, the title and finally the plot itself.
+;
+pro PlotEventsWindow::delete_plot, p
+  if keyword_set(p.axes) then begin
+    axes = p.axes
+    for i = n_elements(axes) - 1, 0, -1 do begin
+      axes[i]->delete
+    endfor
+  endif
+
+  if keyword_set(p.title) then begin
+    p.title->delete
+  endif
+
+  p->delete
 end
 
 pro PlotEventsWindow::set_title, title
@@ -231,8 +343,6 @@ pro PlotEventsWindow::update_log, log
       self.set_range, fit_array[i], log, yrange = diff_spec_range
     endif
   endfor
-
-  plot_window.refresh
 end
 
 function PlotEventsWindow::compute_yrange, this_plot, ylog, index_min = index_min, index_max = index_max
@@ -359,19 +469,21 @@ pro PlotEventsWindow::replot_event
 
   catch, /cancel
 
+  if error_status ne 0 then begin
+    ; Dummy arrays
+    dummy_array1d = make_array(2, /float)
+    dummy_array2d = make_array(2, 2, /float)
+
+    spect.setData, dummy_array2d, dummy_array1d, dummy_array1d, zlog = log
+    diff_spect.setData, dummy_array2d, dummy_array1d, dummy_array1d, zlog = log
+  endif
+
   altitude.SetData, jday, alt
 
   light_curve.SetData, jday, bp_low
   light_curve.xrange = jday_range
   light_curve.yrange = bp_low_range
   light_curve.ylog = log
-
-  ; Finally refresh and bring the window to the front.
-  plot_window.refresh
-  plot_window.setCurrent
-
-  self.spectrogram = ptr_new(spect)
-  self.diff_spect = ptr_new(diff_spect)
 end
 
 pro PlotEventsWindow::update_spectra, spec0_index, force_update = force_update
@@ -549,10 +661,18 @@ pro PlotEventsWindow::update_spectra, spec0_index, force_update = force_update
     endelse
 
   endfor
+end
 
-  ; Finally refresh and bring the window to the front.
-  plot_window.refresh
-  plot_window.setCurrent
+pro PlotEventsWindow::refresh_window, do_not_set_current = do_not_set_current
+  if keyword_set(do_not_set_current) then do_not_set_current = 1 else do_not_set_current = 0
+
+  if ptr_valid(self.plot_window) then begin
+    plot_window = *self.plot_window
+
+    plot_window.refresh
+
+    if not do_not_set_current then plot_window.setCurrent
+  endif
 end
 
 function PlotEventsWindow::is_fit_valid, index
@@ -590,11 +710,13 @@ function PlotEventsWindow::KeyHandler, window, isASCII, character, keyvalue, x, 
       spec0_index = self.spec0_index - 1
       self.update_spectra, spec0_index
 
+      self.refresh_window, /do_not_set_current
     endif else if r eq ' ' or keyvalue eq right then begin
 
       spec0_index = self.spec0_index + 1
       self.update_spectra, spec0_index
 
+      self.refresh_window, /do_not_set_current
     endif else if r eq 'l' or r eq 'L' then begin
       ; Toggle linear/log scaling.
       if self.log then log = !false else log = !true
@@ -603,13 +725,22 @@ function PlotEventsWindow::KeyHandler, window, isASCII, character, keyvalue, x, 
       else print, 'Displaying event with linear scaling.'
 
       self.update_log, log
+      self.refresh_window, /do_not_set_current
     endif else if r eq 'n' or keyValue eq down then begin
       controller.next_event
     endif else if r eq 'p' or r eq 'P' or r eq 'N' or keyValue eq up then begin
       controller.previous_event
-    endif else if r eq 'r' or r eq 'R' then begin
+    endif else if r eq 'r' then begin
       self.replot_event
       self.update_spectra, self.spec0_index, force_update = !true
+
+      self.refresh_window, /do_not_set_current
+    endif else if r eq 'R' then begin
+      self.create_plots
+      self.replot_event
+      self.update_spectra, self.spec0_index, force_update = !true
+
+      self.refresh_window, /do_not_set_current
     endif
   endif
 end

@@ -15,7 +15,6 @@ function Spectrogram::init, z, x, y, $
   if not keyword_set(suppress_color_bar) then suppress_color_bar = !false
   if keyword_set(zlog) then zlog = 1 else zlog = 0
 
-  ;  zlog = 0
   xx = x
   yy = y
   zz = z
@@ -45,7 +44,6 @@ function Spectrogram::init, z, x, y, $
     position = position, $
     window = window $
     )
-  ;  endelse
 
   self.contour = ptr_new(c)
 
@@ -63,7 +61,7 @@ function Spectrogram::init, z, x, y, $
       endif
     endfor
 
-    if tickname.length gt 0 then begin
+    if keyword_set(tickname) and tickname.length gt 0 then begin
       no_taper = 0
       cb = colorbar(target = c, title = 'counts per second', major = tickname.length, tickname = tickname, taper = no_taper)
       self.colorbar = ptr_new(cb)
@@ -178,23 +176,32 @@ pro Spectrogram::hide, hide
 
     endif
   endif else begin
-    ; Show axes, contour plot, then colorbar.
+    ; Show axes, contour plot, then (maybe) colorbar.
+    hide_data = 1
     if ptr_valid(self.contour) then begin
       c = *self.contour
 
+      zmin = c.zrange[0]
+      zmax = c.zrange[1]
+      if finite(zmin) and finite(zmax) and zmin lt zmax then begin
+        c.getData, z, x, y
+        if n_elements(z) gt 1 then hide_data = 0
+      endif
+
       axes = c.axes
 
+      ; Show the axes even if nothing gets plotted.
       for i = 0, axes.length - 1 do begin
         axes[i].hide = 0
       endfor
 
-      c.hide = 0
+      c.hide = hide_data
 
     endif
 
     if ptr_valid(self.colorbar) then begin
       cb = *self.colorbar
-      cb.hide = 0
+      cb.hide = hide_data
     endif
   endelse
 end
