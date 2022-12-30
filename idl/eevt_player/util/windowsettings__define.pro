@@ -185,10 +185,10 @@ function WindowSettings::create_win, title = title, handler = handler
   xmanager, 'WindowSettings::create_win', b, event_handler = 'steem_window_handler', /no_block
 
   file_menu = widget_button(bar, value = 'File', /menu)
-  help_menu = widget_button(bar, value = 'Help', /menu, event_pro = 'steem_help_handler')
+  help_menu = widget_button(bar, value = 'Help', /menu)
 
-  !null = widget_button(file_menu, value = 'New Event Detail Window', accelerator = 'Ctrl+N')
-  !null = widget_button(file_menu, value = 'Close Window', accelerator = 'Ctrl+W', event_pro = 'steem_window_handler')
+  !null = widget_button(file_menu, value = 'New Event Detail Window', event_pro = 'steem_new_handler', accelerator = 'Ctrl+N')
+  !null = widget_button(file_menu, value = 'Close Window', accelerator = 'Ctrl+W', event_pro = 'steem_close_handler')
   !null = widget_button(file_menu, value = 'Exit', accelerator = 'Ctrl+X', event_pro = 'steem_exit_handler')
 
   !null = widget_button(help_menu, value = 'STEEM Help', accelerator = 'Ctrl+H', event_pro = 'steem_help_handler')
@@ -309,14 +309,23 @@ pro steem_window_handler, event
   endif
 end
 
-pro steem_help_handler, event
+pro steem_new_handler, event
   common WindowSettings, prototype
 
-  help_file = prototype.get_help_file()
+  widget_map = prototype.get_widget_map()
+end
 
-  if keyword_set(help_file) then begin
-    xdisplayfile, help_file, title = 'STEEM Help'
+pro steem_close_handler, event
+  common WindowSettings, prototype
+
+  widget_map = prototype.get_widget_map()
+
+  key = string(event.top, format = "base%d")
+
+  if widget_map.hasKey(key) then begin
+    widget_control, widget_map(key), /destroy
   endif
+
 end
 
 pro steem_exit_handler, event
@@ -325,9 +334,29 @@ pro steem_exit_handler, event
   widget_map = prototype.get_widget_map()
   foreach key, widget_map.keys() do begin
     if strmatch(key, 'base*') then begin
+
+      catch, error_number
+      if error_number ne 0 then begin
+        error_number = 0
+        catch, /cancel
+        continue
+      endif
+
       widget_control, widget_map[key], /destroy
+
+      catch, /cancel
     endif
   endforeach
+end
+
+pro steem_help_handler, event
+  common WindowSettings, prototype
+
+  help_file = prototype.get_help_file()
+
+  if keyword_set(help_file) then begin
+    xdisplayfile, help_file, title = 'STEEM Help'
+  endif
 end
 
 pro WindowSettings__define
