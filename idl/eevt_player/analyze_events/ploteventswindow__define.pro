@@ -692,6 +692,16 @@ function PlotEventsWindow::is_fit_valid, index
   return, fit_valid
 end
 
+function PlotEventsWindow::MouseDown, window, x, y, button, keymods, clicks
+  if clicks eq 2 then begin
+    ; Return 0  here to disable the default handler from getting called.
+    ; This pops up an annoying properties window.
+    return, 0
+  endif
+
+  return, 1
+end
+
 function PlotEventsWindow::KeyHandler, window, isASCII, character, keyvalue, x, y, press, release, keymode
   character = string(character)
 
@@ -743,16 +753,6 @@ function PlotEventsWindow::KeyHandler, window, isASCII, character, keyvalue, x, 
       self.refresh_window, /do_not_set_current
     endif
   endif
-end
-
-function PlotEventsWindow::MouseDown, window, x, y, button, keymods, clicks
-  if clicks eq 2 then begin
-    ; Return 0  here to disable the default handler from getting called.
-    ; This pops up an annoying properties window.
-    return, 0
-  endif
-
-  return, 1
 end
 
 ; Class definition.

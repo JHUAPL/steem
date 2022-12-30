@@ -18,7 +18,6 @@ function PlotEventsController::init, eevt, vals, eevt_ids, fit_params, $
   self.vals = ptr_new(vals)
   self.eevt_ids = ptr_new(eevt_ids)
   self.fit_params = ptr_new(fit_params)
-  self.handler = ptr_new(obj_new('PlotEventsHandler', self))
 
   if not keyword_set(window_settings) then $
     window_settings = obj_new('WindowSettings')
@@ -36,7 +35,6 @@ pro PlotEventsController::show_plots, event_index = event_index
   vals = *self.vals
   eevt_ids = *self.eevt_ids
   fit_params = *self.fit_params
-  handler = *self.handler
   window_settings = *self.window_settings
   plot_window = *self.plot_window
 
@@ -128,7 +126,6 @@ pro PlotEventsController__define
     eevt_ids:ptr_new(), $
     fit_params:ptr_new(), $
     event_index:0, $
-    handler:ptr_new(), $
     window_settings:ptr_new(), $
     plot_window:ptr_new() $
   }
