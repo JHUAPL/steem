@@ -42,11 +42,13 @@ pro AnalyzeEventsController::show_spectra, selected_ids
   window_settings = *self.window_settings
 
   ; Create a list of indices filtered based on the events matching the specified selection.
-  indices = where(eevt_ids eq selected_ids[0])
-  for i = 1, n_elements(selected_ids) - 1 do begin
-    indices = [ indices, where(eevt_ids eq selected_ids[i]) ]
+  indices = []
+  for i = 0, n_elements(selected_ids) - 1 do begin
+    matches = where(eevt_ids eq selected_ids[i], /null)
+    if n_elements(matches) gt 0 then begin
+      indices = [ indices, matches ]
+    endif
   endfor
-  indices = indices[where(indices ne -1)]
 
   ; Apply index filter to the data objects.
   eevt = eevt[indices, *]

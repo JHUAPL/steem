@@ -5,6 +5,8 @@ function exp_fit, xin, yin, yfit = yfit
 
   param = [ !values.f_nan, !values.f_nan ]
 
+  ; In this case, use where without /null; will check below for
+  ; the case where there are no matches (where returns -1).
   qx = where(xin gt 0, nqx)
   if nqx lt 2 then begin
     if not suppress_output then begin
@@ -16,6 +18,8 @@ function exp_fit, xin, yin, yfit = yfit
   x = xin[qx]
   y = yin[qx]
 
+  ; In this case, use where without /null; will check below for
+  ; the case where there are no matches (where returns -1).
   qy = where(y gt 0, nqy)
   if nqy lt 2 then begin
     if not suppress_output then begin

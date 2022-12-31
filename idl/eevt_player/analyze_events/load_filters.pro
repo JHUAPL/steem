@@ -48,7 +48,7 @@ pro load_filters, filter_file, lls, uls
   endif
 
   if keyword_set(lower_bounds) then begin
-    indices = where(finite(lower_bounds))
+    indices = where(finite(lower_bounds), /null)
   endif else begin
     indices = !null
   endelse
@@ -60,7 +60,7 @@ pro load_filters, filter_file, lls, uls
   endelse
 
   if keyword_set(upper_bounds) then begin
-    indices = where(finite(upper_bounds))
+    indices = where(finite(upper_bounds), /null)
   endif else begin
     indices = !null
   endelse

@@ -170,15 +170,15 @@ function GlobalPropertyDisplay::toggle_selection, eevt_id
   endif else begin
     selected = *self.selected
 
-    indices = where(selected eq eevt_id)
-    if indices[0] eq -1 then begin
+    indices = where(selected eq eevt_id, /null)
+    if n_elements(indices) eq 0 then begin
       ; This event is currently not selected, so select it.
       selected = [ selected, eevt_id ]
     endif else begin
       ; This event is currently selected, so deselect it.
-      indices = where(selected ne eevt_id)
+      indices = where(selected ne eevt_id, /null)
 
-      if indices[0] ne -1 then selected = selected[indices] $
+      if n_elements(indices) eq 0 then selected = selected[indices] $
       else selected = !null
     endelse
   endelse
@@ -187,22 +187,27 @@ function GlobalPropertyDisplay::toggle_selection, eevt_id
   if selected ne !null then begin
     self.selected = ptr_new(selected)
 
-    indices = where(eevt_ids eq selected[0])
-    for i = 1, n_elements(selected) - 1 do begin
-      indices = [ indices, where(eevt_ids eq selected[i]) ]
+    indices = []
+    for i = 0, n_elements(selected) - 1 do begin
+      matches = where(eevt_ids eq selected[i], /null)
+      if n_elements(matches) gt 0 then begin
+        indices = [ indices, matches ]
+      endif
     endfor
 
-    x = *self.x
-    y = *self.y
+    if n_elements(indices) gt 0 then begin
+      x = *self.x
+      y = *self.y
 
-    x = x[indices]
-    y = y[indices]
+      x = x[indices]
+      y = y[indices]
 
-    highlight.setdata, x, y
-    highlight.hide = 0
+      highlight.setdata, x, y
+      highlight.hide = 0
+    endif
 
-    indices = where(selected eq eevt_id)
-    selected_toggle_on = indices[0] ne -1
+    indices = where(selected eq eevt_id, /null)
+    selected_toggle_on = n_elements(indices) gt 0
   endif else begin
     self->clear_selections
   endelse

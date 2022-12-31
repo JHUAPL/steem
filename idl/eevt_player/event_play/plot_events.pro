@@ -290,10 +290,15 @@ pro plot_events, eevt, vals, eevt_ids, zrange = zrange
         if param_valid then param_label = String(format = ' SI = %0.2f', param[1]) else param_label = ''
 
         if spec_log then begin
-          qtmp = where(this_diff_spec gt 0, nqtmp)
-          diff_min = min(this_diff_spec[qtmp])
-          diff_max = max(this_diff_spec[qtmp])
-        endif      else begin
+          qtmp = where(this_diff_spec gt 0, nqtmp, /null)
+          if n_elements(qtmp) gt 0 then begin
+            diff_min = min(this_diff_spec[qtmp])
+            diff_max = max(this_diff_spec[qtmp])
+          endif else begin
+            diff_min = 0.95
+            diff_max = 1.05
+          endelse
+        endif else begin
           diff_min = min(this_diff_spec)
           diff_max = max(this_diff_spec)
         endelse
