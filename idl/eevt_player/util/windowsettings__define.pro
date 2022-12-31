@@ -76,7 +76,7 @@ function WindowSettings::init, display_id, max_spec, help_file = help_file
   ; Set this object's properties.
   self.set_display_id, display_id
   self.max_spec = max_spec
-  self.help_file = help_file
+  if keyword_set(help_file) then self.help_file = help_file
 
   if prototype eq !null then begin
     ; Take actions here that need only be done the very first time
@@ -351,7 +351,57 @@ pro steem_help_handler, event
 
   if keyword_set(help_file) then begin
     xdisplayfile, help_file, title = 'STEEM Help'
-  endif
+  endif else begin
+    xdisplayfile, help_file, title = 'STEEM Help', $
+      text = [ $
+      'This is the Spectrum Tool for Electron Events at Mercury (STEEM).', $
+      'The purpose of STEEM is to browse and visualiza a publicly', $
+      'accessible data set of electron events taken by the MESSENGER', $
+      'spacecraft. The data are available in the PDS, but are included', $
+      'with this tool for convenience.', $
+      '', $
+      'Here is a brief summary of how STEEM works.', $
+      '', $
+      'On the main window you see the events as they are distributed in a few plots', $
+      'in parameter space. Use your mouse to select one or more events of interest.', $
+      'Then either press the "s" key or select the menu', $
+      '"File -> New Event Detail Window" to open a new window with a more detailed', $
+      'view of just the selected event(s). You can do this multiple times in order', $
+      'to inspect different collections of events. You can also press the "r" key', $
+      '(case-insensitive) to reset the zoom and de-select any events currently selected.', $
+      '', $
+      'The "Event Detail" windows show one event at a time, but allow you to page', $
+      'through whichever events you had selected on the main window when you', $
+      'launched the "Event Detail" window.', $
+      '', $
+      'On the "Event Detail" windows, the following keystrokes may be used to navigate', $
+      'through the data:', $
+      '', $
+      '    space or right-arrow-key: view the next spectrum in the current event', $
+      '', $
+      '    B, b, or left-arrow-key: view the previous spectrum in the current event', $
+      '', $
+      '    n (lower case) or down-arrow-key: view the next event', $
+      '', $
+      '    P, p, N (upper case), or up-arrow_key: view the previous event', $
+      '', $
+      '    r (lower-case): reset zoom, refresh color bars', $
+      '', $
+      '    R (upper-case): completely replot the current event', $
+      '', $
+      '    L or l: toggle between linear and logarithmic scaling on plots', $
+      '', $
+      'If you use the menu item File -> New Event Detail Window on an', $
+      '"Event Detail" window, it clones the current window. This can', $
+      'be useful if you wish to view two events (or two different)', $
+      'spectra in the *same* event), side-by-side.', $
+      '', $
+      'You can drag around/resize/zoom the plots using the mouse. The plots', $
+      'behave (mostly) like IDL (new graphics) plots. There is no undo', $
+      'feature, so if you make a change you regret, [r]eset or [R]eplot', $
+      'is the best you can do to recover. If the main tool window gets', $
+      'messed up, you may need to restart STEEM.' ]
+  endelse
 end
 
 pro destroy_base, base
