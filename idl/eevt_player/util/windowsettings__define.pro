@@ -366,7 +366,8 @@ pro steem_help_handler, event
       'in parameter space. Use your mouse to select one or more events of interest.', $
       'Then either press the "s" key or select the menu', $
       '"File -> New Event Detail Window" to open a new window with a more detailed', $
-      'view of just the selected event(s). You can do this multiple times in order', $
+      'view of just the selected event(s). NOTE: you must have at least one event', $
+      'selected for this to work! You can do this multiple times in order', $
       'to inspect different collections of events. You can also press the "r" key', $
       '(case-insensitive) to reset the zoom and de-select any events currently selected.', $
       '', $
