@@ -675,6 +675,14 @@ pro PlotEventsWindow::refresh_window, do_not_set_current = do_not_set_current
   endif
 end
 
+pro PlotEventsWindow::create_new_window
+  controller = *self.controller
+
+  controller = controller->clone()
+
+  controller->show_plots
+end
+
 function PlotEventsWindow::is_fit_valid, index
   ; Unpack fit parameters if they are available.
   if ptr_valid(self.fit_param) then begin

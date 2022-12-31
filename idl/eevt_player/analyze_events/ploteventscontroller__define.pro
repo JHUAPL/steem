@@ -29,6 +29,18 @@ function PlotEventsController::init, eevt, vals, eevt_ids, fit_params, $
   return, 1
 end
 
+function PlotEventsController::clone
+  ; Get local references to this object's properties.
+  eevt = *self.eevt
+  vals = *self.vals
+  eevt_ids = *self.eevt_ids
+  fit_params = *self.fit_params
+  window_settings = *self.window_settings
+
+  return, obj_new('PlotEventsController', eevt, vals, eevt_ids, fit_params, $
+    window_settings = window_settings)
+end
+
 pro PlotEventsController::show_plots, event_index = event_index
 
   eevt = *self.eevt

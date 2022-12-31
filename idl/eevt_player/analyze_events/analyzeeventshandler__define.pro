@@ -82,16 +82,7 @@ function AnalyzeEventsHandler::KeyHandler, window, isASCII, character, keyvalue,
   character = string(character)
 
   if character eq 's' or character eq 'S' and release then begin
-
-    the_plots = *self.plots
-    controller = *self.controller
-
-    if the_plots ne !null then begin
-      selected = the_plots[0]->get_selections()
-
-      controller->show_spectra, selected
-    endif
-
+    self.create_new_window
   endif
 end
 
@@ -102,6 +93,17 @@ pro AnalyzeEventsHandler::add_plot, the_plot
 
   self.plots = ptr_new(new_plots)
 
+end
+
+pro AnalyzeEventsHandler::create_new_window
+  the_plots = *self.plots
+  controller = *self.controller
+
+  if the_plots ne !null then begin
+    selected = the_plots[0]->get_selections()
+
+    controller->show_spectra, selected
+  endif
 end
 
 ; The "__define" method must come last in the file; otherwise, methods will be undefined.

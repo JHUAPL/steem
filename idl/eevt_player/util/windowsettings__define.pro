@@ -91,10 +91,12 @@ function WindowSettings::init, display_id, max_spec, help_file = help_file
     ; Standard procedural plot set-up.
     ;    standard_plot
 
+    self.handler_map = ptr_new(dictionary())
     self.widget_map = ptr_new(dictionary())
     prototype = self
   endif else begin
-    self.widget_map = ptr_new(prototype.widget_map)
+    self.handler_map = prototype.widget_map
+    self.widget_map = prototype.widget_map
   endelse
 
   return, 1
@@ -179,7 +181,7 @@ function WindowSettings::create_win, title = title, handler = handler
 
   b = widget_base(title = title, xoffset = x, yoffset = y, mbar = bar, /column, /tlb_size_events, /tlb_resize_nodraw)
 
-  key = string(b, format = "base%d")
+  key = self.make_base_key(b)
   widget_map[key] = b
 
   xmanager, 'WindowSettings::create_win', b, event_handler = 'steem_window_handler', /no_block
@@ -187,15 +189,19 @@ function WindowSettings::create_win, title = title, handler = handler
   file_menu = widget_button(bar, value = 'File', /menu)
   help_menu = widget_button(bar, value = 'Help', /menu)
 
-  !null = widget_button(file_menu, value = 'New Event Detail Window', event_pro = 'steem_new_handler', accelerator = 'Ctrl+N')
+  if keyword_set(handler) then begin
+    !null = widget_button(file_menu, value = 'New Event Detail Window', accelerator = 'Ctrl+N', event_pro = 'steem_new_handler')
+    handler_map = *self.handler_map
+    handler_map[key] = handler
+  endif
   !null = widget_button(file_menu, value = 'Close Window', accelerator = 'Ctrl+W', event_pro = 'steem_close_handler')
-  !null = widget_button(file_menu, value = 'Exit', accelerator = 'Ctrl+X', event_pro = 'steem_exit_handler')
+  !null = widget_button(file_menu, value = 'Quit', event_pro = 'steem_exit_handler')
 
   !null = widget_button(help_menu, value = 'STEEM Help', accelerator = 'Ctrl+H', event_pro = 'steem_help_handler')
 
   ww = widget_window(b, xsize = xsize, ysize = ysize)
 
-  key = string(b, format = "win%d")
+  key = self.make_window_key(b)
   widget_map[key] = ww
 
   widget_control, b, /realize
@@ -270,6 +276,10 @@ pro WindowSettings::get_window_pos, win_index, x, y
 
 end
 
+function WindowSettings::get_handler_map
+  return, *self.handler_map
+end
+
 function WindowSettings::get_widget_map
   return, *self.widget_map
 end
@@ -287,12 +297,20 @@ pro WindowSettings::set_prototype
   prototype = self
 end
 
+function WindowSettings::make_base_key, base
+  return, string(base, format = 'base%d')
+end
+
+function WindowSettings::make_window_key, base
+  return, string(base, format = 'win%d')
+end
+
 pro steem_window_handler, event
   common WindowSettings, prototype
 
   widget_map = prototype.get_widget_map()
 
-  key = string(event.handler, format = "win%d")
+  key = prototype.make_window_key(event.top)
 
   if widget_map.hasKey(key) then begin
     ; This is in case event doesn't have x, y, i.e., if it's the wrong
@@ -312,20 +330,17 @@ end
 pro steem_new_handler, event
   common WindowSettings, prototype
 
-  widget_map = prototype.get_widget_map()
+  handler_map = prototype.get_handler_map()
+
+  key = prototype.make_base_key(event.top)
+
+  if handler_map.hasKey(key) then begin
+    handler_map[key]->create_new_window
+  endif
 end
 
 pro steem_close_handler, event
-  common WindowSettings, prototype
-
-  widget_map = prototype.get_widget_map()
-
-  key = string(event.top, format = "base%d")
-
-  if widget_map.hasKey(key) then begin
-    widget_control, widget_map(key), /destroy
-  endif
-
+  destroy_base, event.top
 end
 
 pro steem_exit_handler, event
@@ -333,20 +348,16 @@ pro steem_exit_handler, event
 
   widget_map = prototype.get_widget_map()
   foreach key, widget_map.keys() do begin
-    if strmatch(key, 'base*') then begin
-
-      catch, error_number
-      if error_number ne 0 then begin
-        error_number = 0
-        catch, /cancel
-        continue
+    base = strsplit(key, 'base', /extract)
+    if not strcmp(key, base[0]) then begin
+      base_id = long(base[0])
+      if event.top ne base_id then begin
+        destroy_base, base_id
       endif
-
-      widget_control, widget_map[key], /destroy
-
-      catch, /cancel
     endif
   endforeach
+
+  destroy_base, event.top
 end
 
 pro steem_help_handler, event
@@ -359,12 +370,50 @@ pro steem_help_handler, event
   endif
 end
 
+pro destroy_base, base
+  common WindowSettings, prototype
+
+  handler_map = prototype.get_handler_map()
+  widget_map = prototype.get_widget_map()
+
+  key = prototype.make_base_key(base)
+
+  if widget_map.hasKey(key) then begin
+    widget_id = widget_map[key]
+
+    error_number = 0
+    catch, error_number
+
+    if error_number eq 0 then begin
+      widget_control, widget_id, /destroy
+    endif
+
+    catch, /cancel
+  endif
+
+  remove_key, handler_map, key
+  remove_key, widget_map, key
+  remove_key, widget_map, prototype.make_window_key(base)
+end
+
+pro remove_key, dict, key
+  error_number = 0
+  catch, error_number
+
+  if error_number eq 0 then begin
+    if dict.hasKey(key) then dict.remove, key
+  endif
+
+  catch, /cancel
+end
+
 pro WindowSettings__define
   !null = { WindowSettings, $
     display_id:-1, $
     max_spec:-1, $
     win_index:0, $
     help_file:'', $
+    handler_map:ptr_new(), $
     widget_map:ptr_new() $
   }
 end
