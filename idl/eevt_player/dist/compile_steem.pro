@@ -4,7 +4,6 @@ resolve_all, $
     'AnalyzeEventsHandler', $
     'GlobalPropertyDisplay', $
     'PlotEventsController', $
-    'PlotEventsHandler', $
     'PlotEventsWindow', $
     'Spectrogram', $
     'WindowSettings' ], $
@@ -26,15 +25,21 @@ resolve_all, $
     'validate_par' ], $
   resolve_procedure = [ $
     'analyze_events', $
+    'destroy_base', $
     'get_plot_range', $
     'get_window_pos', $
     'load', $
     'load_filters', $
     'plot_events', $
+    'remove_key', $
     'select', $
     'show_instructions', $
     'standard_plot', $
     'steem_app', $
+    'steem_close_handler', $
+    'steem_exit_handler', $
+    'steem_help_handler', $
+    'steem_new_handler', $
     'steem_window_handler' ]
 
 end
