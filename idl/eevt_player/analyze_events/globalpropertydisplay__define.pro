@@ -110,6 +110,55 @@ function GlobalPropertyDisplay::find_closest_event, point
   return, selected_eevt_id
 end
 
+; This method returns indices of event ids whose coordinates are in the specified rectangle.
+;
+function GlobalPropertyDisplay::find_indices_in_range, x_min, x_max, y_min, y_max
+  x = *self.x
+  y = *self.y
+  eevt_ids = *self.eevt_ids
+  highlight = *self.highlight
+  pos = *self.pos
+  main_plot = *self.main_plot
+
+  width = pos[2] - pos[0]
+  height = pos[3] - pos[1]
+
+  xrange = main_plot.xrange
+  yrange = main_plot.yrange
+
+  xscreen2data = width / (xrange[1] - xrange[0])
+  yscreen2data = height / (yrange[1] - yrange[0])
+
+  x_min = (x_min - pos[0]) / xscreen2data + xrange[0]
+  x_max = (x_max - pos[0]) / xscreen2data + xrange[0]
+  y_min = (y_min - pos[1]) / yscreen2data + yrange[0]
+  y_max = (y_max - pos[1]) / yscreen2data + yrange[0]
+
+  indices = where(x ge x_min and x le x_max and y ge y_min and y le y_max, /null)
+
+  return, indices
+end
+
+pro GlobalPropertyDisplay::select_event_indices, indices
+  eevt_ids = *self.eevt_ids
+  x = *self.x
+  y = *self.y
+  highlight = *self.highlight
+
+  if keyword_set(indices) and n_elements(indices) gt 0 then begin
+    selected = eevt_ids[indices]
+    self.selected = ptr_new(selected)
+
+    x = x[indices]
+    y = y[indices]
+    highlight.setData, x, y
+    highlight.hide = 0
+  endif else begin
+    self.selected = ptr_new()
+    highlight.hide = 1
+  endelse
+end
+
 function GlobalPropertyDisplay::toggle_selection, eevt_id
 
   eevt_ids = *self.eevt_ids
