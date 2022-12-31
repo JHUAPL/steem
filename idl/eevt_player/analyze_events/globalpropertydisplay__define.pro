@@ -227,7 +227,7 @@ pro GlobalPropertyDisplay::display, eevt, vals, eevt_ids, $
   evt_y = extract_array0(eevt, vals, y_quant)
 
   if keyword_set(evt_x) and keyword_set(evt_y) and n_elements(evt_x) eq n_elements(evt_y) then begin
-    margins = [ 15.0 * xunit, 8.0 * xunit, 2.0 * yunit, 20.0 * yunit ]
+    margins = [ 8.0 * xunit, 8.0 * xunit, 2.0 * yunit, 10.0 * yunit ]
 
     pos = plot_coord(row_index, column_index, num_rows, 1, margins = margins)
 
