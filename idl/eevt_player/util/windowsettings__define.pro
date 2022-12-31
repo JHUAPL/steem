@@ -95,7 +95,7 @@ function WindowSettings::init, display_id, max_spec, help_file = help_file
     self.widget_map = ptr_new(dictionary())
     prototype = self
   endif else begin
-    self.handler_map = prototype.widget_map
+    self.handler_map = prototype.handler_map
     self.widget_map = prototype.widget_map
   endelse
 
