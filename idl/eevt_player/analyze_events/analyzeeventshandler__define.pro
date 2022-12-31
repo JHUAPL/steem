@@ -152,6 +152,15 @@ function AnalyzeEventsHandler::KeyHandler, window, isASCII, character, keyvalue,
 
   if character eq 's' or character eq 'S' and release then begin
     self.create_new_window
+  endif else if character eq 'r' or character eq 'R' and release then begin
+    if ptr_valid(self.plots) then begin
+      plots = *self.plots
+
+      foreach p, plots do begin
+        p->reset_zoom
+        p->clear_selections
+      endforeach
+    endif
   endif
 end
 

@@ -228,6 +228,24 @@ pro GlobalPropertyDisplay::clear_selections
   highlight.hide = 1
 end
 
+pro GlobalPropertyDisplay::reset_zoom
+  if ptr_valid(self.main_plot) then begin
+    main_plot = *self.main_plot
+
+    main_plot->getData, x, y
+
+    x_min = min(x, max = x_max, /nan)
+    y_min = min(y, max = y_max, /nan)
+
+    if finite(x_min) and finite(x_max)then begin
+      main_plot.xrange = [ x_min, x_max ]
+    endif
+    if finite(y_min) and finite(y_max) then begin
+      main_plot.yrange = [ y_min, y_max ]
+    endif
+  endif
+end
+
 pro GlobalPropertyDisplay::display, eevt, vals, eevt_ids, $
   x_quant, y_quant, $
   row_index = row_index, num_rows = num_rows
