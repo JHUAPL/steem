@@ -162,19 +162,14 @@ function WindowSettings::max_spec
   return, self.max_spec
 end
 
-function WindowSettings::get_win_index
-  common WindowSettings, prototype
-
-  return, prototype.win_index
-end
-
 function WindowSettings::create_win, title = title, handler = handler
 
   common WindowSettings, prototype
 
-  widget_map = *prototype.widget_map
-
   get_window_pos, prototype.win_index, x, y
+  ++prototype.win_index
+
+  widget_map = *self.widget_map
 
   xsize = self.xsize()
   ysize = self.ysize()
@@ -211,8 +206,6 @@ function WindowSettings::create_win, title = title, handler = handler
   if keyword_set(handler) then w.EVENT_HANDLER = handler
 
   w.SetCurrent
-
-  ++prototype.win_index
 
   return, w
 end
@@ -286,15 +279,6 @@ end
 
 function WindowSettings::get_help_file
   return, self.help_file
-end
-
-; Make *this* instance of WindowSettings the new prototype. Future windows
-; settings (and windows) will be initialized to the same state as this
-; instance.
-pro WindowSettings::set_prototype
-  common WindowSettings, prototype
-
-  prototype = self
 end
 
 function WindowSettings::make_base_key, base
