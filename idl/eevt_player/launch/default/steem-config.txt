@@ -19,7 +19,7 @@ data_dir = steem-data
 # name to filter on, the lower limit, and the upper limit for that parameter.
 # The name is always required, but either or both limits may be blank. Any
 # blank filters are simply ignored.
-filters_file = launch/default/steem-filters.csv
+# filters_file = launch/default/steem-filters.csv
 
 # Help text file. If this parameter is commented out or missing, or if the
 # named file can't be loaded this parameter is commented out, STEEM will
