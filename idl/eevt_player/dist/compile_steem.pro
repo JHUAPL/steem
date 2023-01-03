@@ -12,6 +12,7 @@ resolve_all, $
     'create_win', $
     'exp_fit', $
     'extract_array0', $
+    'find_file', $
     'fit_spectra', $
     'format_jday', $
     'get_levels', $
