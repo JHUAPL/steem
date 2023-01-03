@@ -1,0 +1,7 @@
+# This file can contain any filtering ranges desired for any parameter
+# in either the eevt structure or the vals structure.
+
+ parameter, lower_bound, upper_bound
+    max_sn,       200.0,
+evt_length,          20,
+       alt,            ,      4000.0  

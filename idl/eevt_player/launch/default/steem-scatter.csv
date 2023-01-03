@@ -1,0 +1,7 @@
+# Sample custom scatter definition file. Uncomment the
+# last line to see a fourth plot on the main window.
+x           , y
+sn_tot_norm2, sm_ness_all2
+sn_tot_norm2, alt
+sm_ness_all2, alt
+# evt_length  , max_sn

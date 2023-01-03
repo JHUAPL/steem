@@ -1,0 +1,63 @@
+################################################################################
+# This is a top-level configuration file for the STEEM application. This file's
+# contents essentially controls a user-settable preferences.
+
+# This file's format is key = value. Anything following a hash sign (#) is a
+# comment (ignored).
+################################################################################
+
+# Data directory is the only required item, though STEEM will try to guess
+# the location of the data if this configuration file itself is missing.
+data_dir = steem-data
+
+# The rest of the settings below are optional.
+################################################################################
+# If this parameter is commented out or missing, or if the named file can't be
+# loaded, no filters will be applied; STEEM will load all events.
+#
+# The filters file, if present, is a CSV file with 3 columns: a parameter
+# name to filter on, the lower limit, and the upper limit for that parameter.
+# The name is always required, but either or both limits may be blank. Any
+# blank filters are simply ignored.
+filters_file = launch/default/steem-filters.csv
+
+# Help text file. If this parameter is commented out or missing, or if the
+# named file can't be loaded this parameter is commented out, STEEM will
+# provide some basic failsafe text if the help menu is activated.
+help_file = launch/default/steem-help.txt
+
+# Scatter plot definitions. If this parameter is commented out or missing, or
+# if the named file can't be loaded this parameter is commented out,
+# STEEM will show 3 plots on the main window:
+#
+#   1) sigma v. norm
+#   2) altitude v. norm
+#   3) altitude v. sigma
+#
+# The scatter plot file, if present, is a CSV format file with two columns, X
+# and Y. This file specifies the names of the columns from the data set to use
+# for X and Y on the scatter plots. A power user is thus not limited to just
+# the three "standard" scatter plots listed above -- they can choose more or
+# fewer plots, and have any columns for X and Y on the plots they wish to
+# include.
+scatter_plot_file = launch/default/steem-scatter.csv
+
+# Force choice of display. If this parameter is commented out or missing,
+# STEEM  will try to use the largest display available. If this parameter has
+# an invalid display choice, it will "round off" the choice, i.e., if the
+# number is -1, display 0 will be used, and if the display number is 1000,
+# The number will be reduced to the largest display number present.
+# scatter_display_id = 0
+
+# Force the number of spectra displayed at the same time on Event Detail
+# windows. If this parameter is commented out or missing, the tool will pick
+# a value: 5 for really big displays (height > 2000), 3 for medium displays
+# (height > 1200), and 1 for small displays (height < 1200).
+# max_spec = 4
+
+# If this parameter is present and evaluates to true (non-0 number, !true or
+# true or t, case-insensitive), then NO spectra are displayed on the Event
+# Detail plots. This is in case the user wants to see spectrograms ONLY
+# much larger.
+# nospec = true
+################################################################################
