@@ -5,35 +5,46 @@ pro steem_app, config_file
 
   ; Read launch parameters from the config file.
   if not keyword_set(config_file) then begin
-    config_file = 'launch/default/steem-config.txt'
+    config_file = find_file([ 'launch', 'default', 'steem-config.txt' ])
   endif
-  config = read_key_value_file(config_file, comment_id = '#')
+  if keyword_set(config_file) then begin
+    config = read_key_value_file(config_file, comment_id = '#')
+  endif
 
   ; Extract any launch parameters that are present.
   if keyword_set(config) then begin
-    if config.hasKey('data_dir') then data_dir = config.data_dir
-    if config.hasKey('filters') then filters_file = config.filters
-    if config.hasKey('help_file') then help_file = config.help_file
-    if config.hasKey('scatter_plots') then scatter_plots_file = config.scatter_plots
+    if config.hasKey('data_dir') then data_dir = find_file(config.data_dir)
+    if config.hasKey('filters_file') then filters_file = find_file(config.filters_file)
+    if config.hasKey('help_file') then help_file = find_file(config.help_file)
+    if config.hasKey('scatter_plot_file') then scatter_plot_file = find_file(config.scatter_plot_file)
     if config.hasKey('scatter_display_id') then scatter_display_id = config.scatter_display_id
+    ; Note the following option was only ever partially implemented.
     if config.hasKey('detail_display_id') then detail_display_id = config.detail_display_id
     if config.hasKey('no_spec') then no_spec = config.no_spec
     if config.hasKey('max_spec') then max_spec = config.max_spec
   endif
 
   ; Validate/set default values.
-  data_dir = validate_par(data_dir, 'string', 'data')
+  data_dir = validate_par(data_dir, 'string', find_file('steem-data'))
   filters_file = validate_par(filters_file, 'string', !null)
   help_file = validate_par(help_file, 'string', !null)
-  scatter_plots_file = validate_par(scatter_plots_file, 'string', !null)
+  scatter_plot_file = validate_par(scatter_plot_file, 'string', !null)
   scatter_display_id = validate_par(scatter_display_id, 'int+', !null)
   detail_display_id = validate_par(detail_display_id, 'int+', !null)
   no_spec = validate_par(no_spec, 'bool', !false)
   max_spec = validate_par(max_spec, 'int+', !null)
 
+  if not keyword_set(data_dir) then begin
+    message, string(format = strjoin( [ $
+      'Fatal: cannot find input data. Either', $
+      'a) put the data in a directory named steem-data or', $
+      'b) put the path to the data directory in the data_dir parameter of a steem-config.txt file.', $
+      'In either case, put the directory or config file somewhere in the path %s' ], ' '), !path)
+  endif
+
   ; Interpret/fill in any missing information.
-  if keyword_set(scatter_plots_file) then begin
-    scatter_plots = read_csv_file(scatter_plots_file, delim = ',', comment_id = '#')
+  if keyword_set(scatter_plot_file) then begin
+    scatter_plots = read_csv_file(scatter_plot_file, delim = ',', comment_id = '#')
     if keyword_set(scatter_plots) then begin
       ; Ensure somewhat valid selection.
       array_size = size(scatter_plots)
